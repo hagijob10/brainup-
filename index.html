@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>BrainUp — Тренування мозку</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BrainUp">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href='data:application/manifest+json,{"name":"BrainUp","short_name":"BrainUp","start_url":"./","display":"standalone","background_color":"%230a0a0f","theme_color":"%230a0a0f"}'>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%236c5ce7'/%3E%3Ctext x='50' y='66' font-size='52' text-anchor='middle' fill='white' font-family='-apple-system'%3E%F0%9F%A7%A0%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0a0f;
+  --bg-elevated:#15151f;
+  --bg-card:#1a1a24;
+  --bg-card-2:#20202c;
+  --border:#2a2a38;
+  --text:#f5f5f7;
+  --text-dim:#9a9aa8;
+  --accent:#6c5ce7;
+  --accent-2:#00d2ff;
+  --success:#34c759;
+  --danger:#ff3b30;
+  --warning:#ffcc00;
+  --star:#ffd60a;
+  --radius:18px;
+  --radius-sm:12px;
+  --safe-t:env(safe-area-inset-top, 0px);
+  --safe-b:env(safe-area-inset-bottom, 0px);
+  --c-schulte:#6c5ce7;
+  --c-reverse:#00b894;
+  --c-stroop:#ff6b6b;
+  --c-simon:#fdcb6e;
+  --c-math:#0984e3;
+  --c-diff:#e84393;
+  --c-reaction:#00cec9;
+  --c-memory:#a29bfe;
+  --c-positions:#74b9ff;
+  --c-nback:#55efc4;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{
+  margin:0;padding:0;width:100%;height:100%;
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+  overflow:hidden;position:fixed;inset:0;
+  -webkit-user-select:none;user-select:none;
+  touch-action:manipulation;
+  overscroll-behavior:none;
+}
+#app{position:relative;width:100%;height:100%;height:100dvh;overflow:hidden;}
+button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer;-webkit-appearance:none;}
+h1,h2,h3,p,ul{margin:0;padding:0;}
+ul{list-style:none;}
+
+.screen{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;
+  transform:translateY(18px) scale(.985);
+  transition:opacity .25s ease, transform .32s cubic-bezier(.25,.8,.25,1);
+  padding:calc(var(--safe-t) + 18px) 18px calc(var(--safe-b) + 18px) 18px;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.screen.active{opacity:1;pointer-events:auto;transform:translateY(0) scale(1);z-index:2;}
+
+/* ---------- shared header / nav ---------- */
+.top-bar{display:flex;align-items:center;gap:12px;margin-bottom:18px;min-height:44px;}
+.back-btn{
+  width:44px;height:44px;border-radius:50%;background:var(--bg-card);
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+  transition:transform .15s ease, background .15s ease;
+}
+.back-btn:active{transform:scale(.9);background:var(--bg-card-2);}
+.top-bar .title{font-size:18px;font-weight:700;}
+.top-bar .spacer{flex:1;}
+
+.timer-bar-track{height:6px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-bottom:14px;flex-shrink:0;}
+.timer-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .2s linear;width:100%;}
+
+.hud-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:14px;color:var(--text-dim);flex-shrink:0;}
+.hud-row b{color:var(--text);font-size:16px;}
+
+/* ---------- buttons ---------- */
+.btn{
+  min-height:50px;border-radius:var(--radius-sm);
+  font-size:16px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform .12s ease, filter .15s ease;
+  padding:0 18px;
+}
+.btn:active{transform:scale(.96);filter:brightness(1.1);}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#5641d8);color:#fff;}
+.btn-secondary{background:var(--bg-card);color:var(--text);}
+.btn-block{width:100%;}
+
+/* ---------- MAIN MENU ---------- */
+.app-header{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:18px;flex-shrink:0;}
+.app-logo{font-size:48px;line-height:1;margin-bottom:6px;filter:drop-shadow(0 4px 14px rgba(108,92,231,.5));}
+.app-title{font-size:26px;font-weight:800;letter-spacing:-.5px;background:linear-gradient(135deg,#fff,#b8b0ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.app-subtitle{font-size:14px;color:var(--text-dim);margin-top:2px;}
+
+.streak-wrap{display:flex;justify-content:center;margin-bottom:18px;flex-shrink:0;}
+.streak-badge{
+  display:flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,#ff9f43,#ff6b6b);
+  padding:9px 18px;border-radius:22px;font-weight:700;font-size:14px;color:#1a0a00;
+  box-shadow:0 6px 18px rgba(255,107,107,.35);
+}
+
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex-shrink:0;}
+.game-card{
+  background:var(--bg-card);border-radius:var(--radius);padding:16px 14px;
+  display:flex;flex-direction:column;gap:8px;min-height:148px;position:relative;overflow:hidden;
+  border:1px solid var(--border);
+  transition:transform .15s ease;
+}
+.game-card:active{transform:scale(.95);}
+.game-card .glow{position:absolute;top:-30px;right:-30px;width:90px;height:90px;border-radius:50%;opacity:.18;filter:blur(10px);}
+.game-card .icon{font-size:34px;}
+.game-card .name{font-weight:700;font-size:14.5px;line-height:1.25;}
+.game-card .best{font-size:12px;color:var(--text-dim);margin-top:auto;}
+.game-card .stars{font-size:13px;color:var(--star);letter-spacing:1px;}
+.game-card .stars .dim{color:#3a3a48;}
+
+.stats-bar{
+  display:flex;margin-top:18px;background:var(--bg-card);border-radius:var(--radius);
+  padding:16px 8px;flex-shrink:0;border:1px solid var(--border);
+}
+.stats-bar .stat{flex:1;text-align:center;display:flex;flex-direction:column;gap:4px;}
+.stats-bar .stat b{font-size:20px;font-weight:800;}
+.stats-bar .stat span{font-size:11.5px;color:var(--text-dim);}
+.stats-bar .divider{width:1px;background:var(--border);margin:2px 0;}
+.bottom-pad{height:24px;flex-shrink:0;}
+
+/* ---------- LEVEL SELECT ---------- */
+.level-card{
+  background:var(--bg-card);border-radius:var(--radius);padding:18px;margin-bottom:12px;
+  display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);
+  transition:transform .12s ease;
+}
+.level-card:active{transform:scale(.97);}
+.level-card .lname{font-weight:700;font-size:16px;margin-bottom:3px;}
+.level-card .ldesc{font-size:12.5px;color:var(--text-dim);}
+.level-card .chev{font-size:20px;color:var(--text-dim);}
+
+/* ---------- center game layouts ---------- */
+.game-stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:0;}
+.big-number{font-size:54px;font-weight:800;letter-spacing:-1px;}
+
+/* Schulte */
+.schulte-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;max-width:380px;aspect-ratio:1;}
+.schulte-cell{
+  background:var(--bg-card);border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;border:1px solid var(--border);transition:transform .1s ease, background .15s ease, opacity .25s ease;
+}
+.schulte-cell:active{transform:scale(.92);}
+.schulte-cell.done{background:var(--success);color:#04210c;opacity:.55;}
+.schulte-cell.wrong{background:var(--danger);}
+.schulte-next-hint{font-size:14px;color:var(--text-dim);}
+
+/* Number pad (reverse numbers game) */
+.numpad-display{
+  min-height:54px;font-size:30px;font-weight:700;letter-spacing:4px;
+  background:var(--bg-card);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;
+  width:100%;max-width:320px;border:1px solid var(--border);
+}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:320px;}
+.numpad button{
+  min-height:58px;border-radius:var(--radius-sm);background:var(--bg-card);font-size:22px;font-weight:700;
+  border:1px solid var(--border);transition:transform .1s ease, background .12s ease;
+}
+.numpad button:active{transform:scale(.92);background:var(--bg-card-2);}
+.numpad .np-action{background:var(--accent);color:#fff;font-size:15px;}
+.sequence-display{font-size:64px;font-weight:800;}
+
+/* Stroop */
+.stroop-word{font-size:46px;font-weight:800;}
+.stroop-buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:340px;}
+.stroop-btn{min-height:62px;border-radius:var(--radius-sm);font-size:16px;font-weight:700;}
+
+/* Simon */
+.simon-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:320px;aspect-ratio:1;}
+.simon-cell{border-radius:16px;background:var(--bg-card);border:1px solid var(--border);transition:transform .1s ease, filter .15s ease, opacity .2s ease;}
+.simon-cell.active-pool{opacity:1;}
+.simon-cell.inactive-pool{opacity:.25;}
+.simon-cell.lit{filter:brightness(1.9);transform:scale(.94);box-shadow:0 0 26px currentColor;}
+.simon-cell:active{transform:scale(.92);}
+
+/* Math */
+.math-problem{font-size:42px;font-weight:800;}
+.math-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:340px;}
+.math-opt{min-height:62px;border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border);font-size:20px;font-weight:700;}
+.flash-correct{animation:flashGreen .35s ease;}
+.flash-wrong{animation:flashRed .35s ease;}
+@keyframes flashGreen{0%{background:var(--success);}100%{background:transparent;}}
+@keyframes flashRed{0%{background:var(--danger);}100%{background:transparent;}}
+
+/* Differences */
+.diff-row{display:flex;gap:10px;justify-content:center;}
+.diff-cell{
+  width:56px;height:56px;border-radius:14px;background:var(--bg-card);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:28px;transition:transform .1s ease, background .2s ease;
+}
+.diff-cell:active{transform:scale(.9);}
+.diff-cell.found{background:var(--success);}
+.diff-cell.wrong-tap{background:var(--danger);}
+
+/* Reaction */
+.reaction-zone{
+  flex:1;width:100%;border-radius:var(--radius);background:var(--bg-card);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;
+  font-size:22px;font-weight:700;transition:background .12s ease;
+}
+.reaction-zone.go{background:var(--success);}
+.reaction-zone.early{background:var(--danger);}
+.reaction-zone .sub{font-size:14px;color:var(--text-dim);font-weight:500;}
+.reaction-zone.go .sub{color:#04210c;}
+
+/* ---------- RESULT SCREEN ---------- */
+.result-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;}
+.result-stars{font-size:42px;letter-spacing:6px;}
+.result-stars .dim{color:#3a3a48;}
+.result-score{font-size:40px;font-weight:800;}
+.result-label{font-size:14px;color:var(--text-dim);}
+.result-best{
+  background:var(--bg-card);border-radius:var(--radius-sm);padding:10px 18px;font-size:13.5px;color:var(--star);
+  border:1px solid var(--border);
+}
+.result-actions{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;margin-top:8px;}
+
+@keyframes popIn{0%{transform:scale(.6);opacity:0;}70%{transform:scale(1.08);}100%{transform:scale(1);opacity:1;}}
+.pop-in{animation:popIn .4s cubic-bezier(.25,.8,.25,1);}
+
+/* ---------- Memory match (Game 8) ---------- */
+.memory-grid{display:grid;gap:6px;width:100%;max-width:380px;}
+.memory-card{
+  aspect-ratio:1;border-radius:10px;background:var(--bg-card);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  transition:transform .15s ease, background .2s ease;
+}
+.memory-card:active{transform:scale(.93);}
+.memory-card.flipped{background:var(--bg-card-2);}
+.memory-card.matched{background:var(--success);animation:flashGreen .4s ease;}
+.memory-card.mismatch{animation:flashRed .35s ease;}
+
+/* ---------- Remember positions (Game 9) ---------- */
+.positions-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;max-width:320px;aspect-ratio:1;}
+.positions-cell{
+  border-radius:12px;background:var(--bg-card);border:1px solid var(--border);
+  transition:background .15s ease, transform .1s ease;
+}
+.positions-cell:active{transform:scale(.93);}
+.positions-cell.dot-shown{background:var(--accent);}
+.positions-cell.correct{background:var(--success);}
+.positions-cell.wrong{background:var(--danger);}
+
+/* ---------- N-back (Game 10) ---------- */
+.nback-badge{
+  font-size:13px;font-weight:700;color:var(--accent-2);letter-spacing:.5px;
+  background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:6px 14px;
+}
+.nback-display{
+  font-size:84px;font-weight:800;min-width:140px;min-height:140px;border-radius:24px;
+  background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  transition:background .15s ease;
+}
+.nback-display.flash-ok{background:var(--success);}
+.nback-display.flash-bad{background:var(--danger);}
+.nback-buttons{display:flex;gap:12px;width:100%;max-width:340px;margin:0 auto;flex-shrink:0;}
+.nback-btn{flex:1;min-height:58px;border-radius:var(--radius-sm);font-size:17px;}
+.nback-yes{background:linear-gradient(135deg,var(--success),#1f8a3a);color:#fff;}
+.nback-no{background:linear-gradient(135deg,var(--danger),#a8231a);color:#fff;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== MAIN MENU ===================== -->
+  <section class="screen active" id="screen-main">
+    <div class="app-header">
+      <div class="app-logo">🧠</div>
+      <h1 class="app-title">BrainUp</h1>
+      <p class="app-subtitle">Тренуй мозок щодня</p>
+    </div>
+
+    <div class="streak-wrap">
+      <div class="streak-badge"><span>🔥</span><span id="streak-text">0 днів підряд</span></div>
+    </div>
+
+    <div class="cards-grid" id="cards-grid"></div>
+
+    <div class="stats-bar">
+      <div class="stat"><b id="stat-sessions">0</b><span>Сесій зіграно</span></div>
+      <div class="divider"></div>
+      <div class="stat"><b id="stat-avg">0</b><span>Середній бал</span></div>
+    </div>
+    <div class="bottom-pad"></div>
+  </section>
+
+  <!-- ===================== LEVEL SELECT (shared) ===================== -->
+  <section class="screen" id="screen-levels">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title" id="levels-title">Рівень</div>
+    </div>
+    <div id="levels-list"></div>
+  </section>
+
+  <!-- ===================== GAME 1: SCHULTE TABLE ===================== -->
+  <section class="screen" id="screen-schulte">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Таблиця Шульте</div>
+    </div>
+    <div class="timer-bar-track"><div class="timer-bar-fill" id="schulte-timerbar"></div></div>
+    <div class="hud-row">
+      <span>Шукай: <b id="schulte-next">1</b></span>
+      <span>Таблиць пройдено: <b id="schulte-count">0</b></span>
+    </div>
+    <div class="game-stage">
+      <div class="schulte-grid" id="schulte-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== GAME 2: REVERSE NUMBERS ===================== -->
+  <section class="screen" id="screen-reverse">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Числа навпаки</div>
+    </div>
+    <div class="hud-row">
+      <span>Раунд: <b id="reverse-round">1/10</b></span>
+      <span>Очки: <b id="reverse-score">0</b></span>
+    </div>
+    <div class="game-stage">
+      <div class="sequence-display" id="reverse-sequence" style="display:none;"></div>
+      <div id="reverse-input-wrap" style="display:none;width:100%;display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <p class="result-label">Введи числа у зворотньому порядку</p>
+        <div class="numpad-display" id="reverse-display"></div>
+        <div class="numpad" id="reverse-numpad"></div>
+      </div>
+      <div id="reverse-ready-wrap" style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <p class="result-label">Запам'ятай числа, потім введи їх у зворотньому порядку</p>
+        <button class="btn btn-primary" id="reverse-start-round">Почати раунд</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== GAME 3: STROOP ===================== -->
+  <section class="screen" id="screen-stroop">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Струп-тест</div>
+    </div>
+    <div class="timer-bar-track"><div class="timer-bar-fill" id="stroop-timerbar"></div></div>
+    <div class="hud-row">
+      <span>Час: <b id="stroop-time">60</b>с</span>
+      <span>Очки: <b id="stroop-score">0</b></span>
+    </div>
+    <div class="game-stage">
+      <p class="result-label">Натисни КОЛІР ЧОРНИЛА, не слово</p>
+      <div class="stroop-word" id="stroop-word">ЧЕРВОНИЙ</div>
+    </div>
+    <div class="stroop-buttons" id="stroop-buttons"></div>
+  </section>
+
+  <!-- ===================== GAME 4: SIMON ===================== -->
+  <section class="screen" id="screen-simon">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Пам'ять послідовності</div>
+    </div>
+    <div class="hud-row">
+      <span id="simon-status">Дивись уважно...</span>
+      <span>Рівень: <b id="simon-length">0</b></span>
+    </div>
+    <div class="game-stage">
+      <div class="simon-grid" id="simon-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== GAME 5: MATH ===================== -->
+  <section class="screen" id="screen-math">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Математика</div>
+    </div>
+    <div class="timer-bar-track"><div class="timer-bar-fill" id="math-timerbar"></div></div>
+    <div class="hud-row">
+      <span>Час: <b id="math-time">90</b>с</span>
+      <span>Очки: <b id="math-score">0</b></span>
+    </div>
+    <div class="game-stage" id="math-stage">
+      <div class="math-problem" id="math-problem">2 + 2</div>
+      <div class="math-options" id="math-options"></div>
+    </div>
+  </section>
+
+  <!-- ===================== GAME 6: DIFFERENCES ===================== -->
+  <section class="screen" id="screen-diff">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Знайди відмінності</div>
+    </div>
+    <div class="timer-bar-track"><div class="timer-bar-fill" id="diff-timerbar"></div></div>
+    <div class="hud-row">
+      <span>Час: <b id="diff-time">30</b>с</span>
+      <span>Знайдено: <b id="diff-score">0</b></span>
+    </div>
+    <div class="game-stage">
+      <p class="result-label">Знайди символ, який відрізняється</p>
+      <div class="diff-row" id="diff-row-top"></div>
+      <div class="diff-row" id="diff-row-bottom"></div>
+    </div>
+  </section>
+
+  <!-- ===================== GAME 7: REACTION ===================== -->
+  <section class="screen" id="screen-reaction">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Реакція</div>
+    </div>
+    <div class="hud-row">
+      <span>Раунд: <b id="reaction-round">1/10</b></span>
+      <span>Середній час: <b id="reaction-avg">—</b></span>
+    </div>
+    <div class="reaction-zone" id="reaction-zone">
+      <div id="reaction-main-text">Натисни, щоб почати</div>
+      <div class="sub" id="reaction-sub-text"></div>
+    </div>
+  </section>
+
+  <!-- ===================== GAME 8: MEMORY MATCH ===================== -->
+  <section class="screen" id="screen-memory">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Пари карток</div>
+    </div>
+    <div class="hud-row">
+      <span>Час: <b id="memory-time">0.0с</b></span>
+      <span>Ходів: <b id="memory-moves">0</b></span>
+    </div>
+    <div class="game-stage">
+      <div class="memory-grid" id="memory-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== GAME 9: REMEMBER POSITIONS ===================== -->
+  <section class="screen" id="screen-positions">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Запам'ятай позиції</div>
+    </div>
+    <div class="hud-row">
+      <span>Раунд: <b id="positions-round">1/10</b></span>
+      <span>Очки: <b id="positions-score">0</b></span>
+    </div>
+    <div class="game-stage">
+      <p class="result-label" id="positions-status">Запам'ятай позиції крапок</p>
+      <div class="positions-grid" id="positions-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== GAME 10: N-BACK ===================== -->
+  <section class="screen" id="screen-nback">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">N-back</div>
+    </div>
+    <div class="hud-row">
+      <span>Раунд: <b id="nback-round">1/20</b></span>
+      <span>Правильно: <b id="nback-score">0</b></span>
+    </div>
+    <div class="game-stage">
+      <div class="nback-badge" id="nback-badge">1-back</div>
+      <div class="nback-display" id="nback-display">A</div>
+      <p class="result-label">Чи такий самий символ був N кроків тому?</p>
+    </div>
+    <div class="nback-buttons">
+      <button class="btn nback-btn nback-yes" id="nback-btn-yes">Так</button>
+      <button class="btn nback-btn nback-no" id="nback-btn-no">Ні</button>
+    </div>
+  </section>
+
+  <!-- ===================== RESULT SCREEN (shared) ===================== -->
+  <section class="screen" id="screen-result">
+    <div class="top-bar">
+      <span class="spacer"></span>
+    </div>
+    <div class="result-wrap">
+      <div class="result-stars pop-in" id="result-stars"></div>
+      <div class="result-score pop-in" id="result-score"></div>
+      <div class="result-label" id="result-label"></div>
+      <div class="result-best" id="result-best"></div>
+      <div class="result-actions">
+        <button class="btn btn-primary btn-block" id="result-retry">Грати ще раз</button>
+        <button class="btn btn-secondary btn-block" data-nav="main">До меню</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+'use strict';
+/* ===================== CONFIG ===================== */
+const GAME_ORDER = ['schulte','reverse','stroop','simon','math','diff','reaction','memory','positions','nback'];
+
+const GAMES = {
+  schulte:{
+    name:'Таблиця Шульте', icon:'🔢', color:'var(--c-schulte)', hasLevels:true,
+    levels:[
+      {key:'novice',name:'Новачок',desc:'60 секунд на таблицю'},
+      {key:'amateur',name:'Любитель',desc:'40 секунд на таблицю'},
+      {key:'pro',name:'Профі',desc:'25 секунд на таблицю'},
+    ],
+    higherBetter:true,
+    formatScore:v=> v==null?'—': v+' '+(v===1?'таблиця':(v>=2&&v<=4?'таблиці':'таблиць')),
+    stars:score=> score>=5?3:score>=3?2:1,
+  },
+  reverse:{
+    name:'Числа навпаки', icon:'🔁', color:'var(--c-reverse)', hasLevels:true,
+    levels:[
+      {key:'easy',name:'3 числа',desc:'Легкий рівень'},
+      {key:'medium',name:'5 чисел',desc:'Середній рівень'},
+      {key:'hard',name:'7 чисел',desc:'Важкий рівень'},
+    ],
+    higherBetter:true,
+    formatScore:v=> v==null?'—': v+'/10',
+    stars:score=> score>=9?3:score>=6?2:1,
+  },
+  stroop:{
+    name:'Струп-тест', icon:'🎨', color:'var(--c-stroop)', hasLevels:false,
+    higherBetter:true,
+    formatScore:v=> v==null?'—': v+' очок',
+    stars:score=> score>=35?3:score>=20?2:1,
+  },
+  simon:{
+    name:"Пам'ять послідовності", icon:'🧩', color:'var(--c-simon)', hasLevels:true,
+    levels:[
+      {key:'easy',name:'3 кольори',desc:'Найпростіше'},
+      {key:'medium',name:'6 кольорів',desc:'Середня складність'},
+      {key:'hard',name:'9 кольорів',desc:'Весь набір кольорів'},
+    ],
+    higherBetter:true,
+    formatScore:v=> v==null?'—': v+' '+(v===1?'крок':'кроків'),
+    stars:score=> score>=10?3:score>=6?2:1,
+  },
+  math:{
+    name:'Математика', icon:'➗', color:'var(--c-math)', hasLevels:true,
+    levels:[
+      {key:'easy',name:'Легко',desc:'+ і − до 20'},
+      {key:'medium',name:'Середньо',desc:'+ − до 100, ×'},
+      {key:'hard',name:'Важко',desc:'Всі операції'},
+    ],
+    higherBetter:true,
+    formatScore:v=> v==null?'—': v+' прав.',
+    stars:score=> score>=20?3:score>=12?2:1,
+  },
+  diff:{
+    name:'Знайди відмінності', icon:'🔍', color:'var(--c-diff)', hasLevels:false,
+    higherBetter:true,
+    formatScore:v=> v==null?'—': v+' знайдено',
+    stars:score=> score>=10?3:score>=5?2:1,
+  },
+  reaction:{
+    name:'Реакція', icon:'⚡', color:'var(--c-reaction)', hasLevels:false,
+    higherBetter:false,
+    formatScore:v=> v==null?'—': Math.round(v)+' мс',
+    stars:score=> score<250?3:score<400?2:1,
+  },
+  memory:{
+    name:'Пари карток', icon:'🃏', color:'var(--c-memory)', hasLevels:true,
+    levels:[
+      {key:'novice',name:'Новачок',desc:'4×4, 8 пар'},
+      {key:'amateur',name:'Любитель',desc:'5×4, 10 пар'},
+      {key:'pro',name:'Профі',desc:'6×4, 12 пар'},
+    ],
+    higherBetter:false,
+    formatScore:v=> v==null?'—': v.toFixed(1)+'с',
+    stars:score=> score<30?3:score<60?2:1,
+  },
+  positions:{
+    name:"Запам'ятай позиції", icon:'🔵', color:'var(--c-positions)', hasLevels:true,
+    levels:[
+      {key:'novice',name:'Новачок',desc:'2с показу, 2 крапки'},
+      {key:'amateur',name:'Любитель',desc:'1.5с показу, 3 крапки'},
+      {key:'pro',name:'Профі',desc:'1с показу, 4 крапки'},
+    ],
+    higherBetter:true,
+    formatScore:v=> v==null?'—': v+' точок',
+    stars:score=> score>=50?3:score>=30?2:1,
+  },
+  nback:{
+    name:'N-back', icon:'🔄', color:'var(--c-nback)', hasLevels:true,
+    levels:[
+      {key:'novice',name:'1-back',desc:'Порівняння з попереднім'},
+      {key:'amateur',name:'2-back',desc:'Порівняння з 2 кроків тому'},
+      {key:'pro',name:'3-back',desc:'Порівняння з 3 кроків тому'},
+    ],
+    higherBetter:true,
+    formatScore:v=> v==null?'—': v+'/20',
+    stars:score=> score>=16?3:score>=10?2:1,
+  },
+};
+/* ===================== STORAGE ===================== */
+const STORAGE_KEY = 'brainup_v1';
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ /* ignore corrupt data */ }
+  return { streak:{count:0,lastDate:null}, totalSessions:0, scoreSum:0, games:{} };
+}
+let DATA = loadData();
+function saveData(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); }catch(e){} }
+
+function todayStr(d){
+  d = d || new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function registerPlayToday(){
+  const today = todayStr();
+  if(DATA.streak.lastDate === today) return;
+  const y = new Date(); y.setDate(y.getDate()-1);
+  if(DATA.streak.lastDate === todayStr(y)) DATA.streak.count++;
+  else DATA.streak.count = 1;
+  DATA.streak.lastDate = today;
+}
+
+function betterThan(cfg, a, b){ return cfg.higherBetter ? a > b : a < b; }
+
+function getCardBest(gameId){
+  const cfg = GAMES[gameId];
+  const g = DATA.games[gameId];
+  if(!g) return null;
+  if(!cfg.hasLevels) return g.best != null ? g.best : null;
+  let best = null;
+  cfg.levels.forEach(lvl=>{
+    const v = g.bestByLevel ? g.bestByLevel[lvl.key] : null;
+    if(v != null && (best == null || betterThan(cfg, v, best))) best = v;
+  });
+  return best;
+}
+
+function recordResult(gameId, levelKey, score){
+  const cfg = GAMES[gameId];
+  if(!DATA.games[gameId]) DATA.games[gameId] = cfg.hasLevels ? {bestByLevel:{}} : {best:null};
+  const slot = DATA.games[gameId];
+  let prev, isNew = false;
+  if(cfg.hasLevels){
+    prev = slot.bestByLevel[levelKey];
+    if(prev == null || betterThan(cfg, score, prev)){ slot.bestByLevel[levelKey] = score; isNew = true; }
+  } else {
+    prev = slot.best;
+    if(prev == null || betterThan(cfg, score, prev)){ slot.best = score; isNew = true; }
+  }
+  const stars = cfg.stars(score);
+  DATA.totalSessions++;
+  DATA.scoreSum = (DATA.scoreSum||0) + Math.round(stars/3*100);
+  registerPlayToday();
+  saveData();
+  const best = cfg.hasLevels ? slot.bestByLevel[levelKey] : slot.best;
+  return {stars, isNew, best};
+}
+/* ===================== UTIL ===================== */
+function haptic(style){
+  if(!navigator.vibrate) return;
+  if(style==='success') navigator.vibrate([10,40,10]);
+  else if(style==='error') navigator.vibrate(60);
+  else if(style==='medium') navigator.vibrate(16);
+  else navigator.vibrate(8);
+}
+function starString(n){
+  let s='';
+  for(let i=0;i<3;i++) s += i<n ? '★' : '<span class="dim">★</span>';
+  return s;
+}
+function dayWord(n){
+  const m10 = n%10, m100 = n%100;
+  if(m10===1 && m100!==11) return 'день';
+  if(m10>=2 && m10<=4 && (m100<12 || m100>14)) return 'дні';
+  return 'днів';
+}
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+function clearTimer(handle){ if(handle) { clearInterval(handle); clearTimeout(handle); } }
+/* ===================== NAVIGATION ===================== */
+let activeGameCleanup = null;
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById('screen-'+id);
+  if(el) el.classList.add('active');
+}
+function goTo(id){
+  if(activeGameCleanup){ activeGameCleanup(); activeGameCleanup = null; }
+  showScreen(id);
+  if(id==='main') renderMain();
+}
+document.querySelectorAll('[data-nav]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{ haptic(); goTo(btn.dataset.nav); });
+});
+/* ===================== MAIN MENU + LEVELS + RESULT ===================== */
+let currentGameId = null;
+let currentLevelKey = null;
+
+function renderMain(){
+  document.getElementById('streak-text').textContent = `${DATA.streak.count} ${dayWord(DATA.streak.count)} підряд`;
+  document.getElementById('stat-sessions').textContent = DATA.totalSessions;
+  document.getElementById('stat-avg').textContent = DATA.totalSessions ? Math.round(DATA.scoreSum/DATA.totalSessions)+'%' : '—';
+
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = '';
+  GAME_ORDER.forEach(id=>{
+    const cfg = GAMES[id];
+    const best = getCardBest(id);
+    const stars = best==null ? 0 : cfg.stars(best);
+    const card = document.createElement('button');
+    card.className = 'game-card';
+    card.innerHTML = `
+      <div class="glow" style="background:${cfg.color}"></div>
+      <div class="icon">${cfg.icon}</div>
+      <div class="name">${cfg.name}</div>
+      <div class="stars">${starString(stars)}</div>
+      <div class="best">Найкращий: ${cfg.formatScore(best)}</div>`;
+    card.addEventListener('click', ()=>{ haptic(); openGame(id); });
+    grid.appendChild(card);
+  });
+}
+
+function openGame(id){
+  currentGameId = id;
+  const cfg = GAMES[id];
+  if(cfg.hasLevels){ renderLevels(id); showScreen('levels'); }
+  else startGame(id, null);
+}
+
+function renderLevels(id){
+  const cfg = GAMES[id];
+  document.getElementById('levels-title').textContent = cfg.name;
+  const list = document.getElementById('levels-list');
+  list.innerHTML = '';
+  cfg.levels.forEach(lvl=>{
+    const g = DATA.games[id];
+    const best = g && g.bestByLevel ? g.bestByLevel[lvl.key] : null;
+    const card = document.createElement('button');
+    card.className = 'level-card';
+    card.style.width = '100%';
+    card.innerHTML = `<div><div class="lname">${lvl.name}</div><div class="ldesc">${lvl.desc} · Рекорд: ${cfg.formatScore(best)}</div></div><div class="chev">›</div>`;
+    card.addEventListener('click', ()=>{ haptic(); startGame(id, lvl.key); });
+    list.appendChild(card);
+  });
+}
+
+function startGame(id, levelKey){
+  currentGameId = id;
+  currentLevelKey = levelKey;
+  showScreen(id);
+  GAME_MODULES[id].start(levelKey);
+}
+
+function showResult(gameId, levelKey, score, customLabel){
+  const cfg = GAMES[gameId];
+  const {stars, isNew, best} = recordResult(gameId, levelKey, score);
+  document.getElementById('result-stars').innerHTML = starString(stars);
+  document.getElementById('result-score').textContent = cfg.formatScore(score);
+  document.getElementById('result-label').textContent = customLabel || cfg.name;
+  document.getElementById('result-best').textContent = isNew ? '🎉 Новий особистий рекорд!' : ('Рекорд: '+cfg.formatScore(best));
+  document.getElementById('result-retry').onclick = ()=>{ haptic(); startGame(gameId, levelKey); };
+  haptic(stars===3 ? 'success' : 'light');
+  activeGameCleanup = null;
+  showScreen('result');
+}
+/* ===================== GAME: SCHULTE ===================== */
+const SchulteGame = (function(){
+  const LEVEL_TIME = {novice:60, amateur:40, pro:25};
+  let next, tablesCompleted, timeLeft, totalTime, timerHandle, levelKey, gridEl;
+
+  function buildGrid(){
+    gridEl.innerHTML = '';
+    const nums = shuffle(Array.from({length:25},(_,i)=>i+1));
+    nums.forEach(n=>{
+      const cell = document.createElement('button');
+      cell.className = 'schulte-cell';
+      cell.textContent = n;
+      cell.addEventListener('click', ()=>onTap(cell,n));
+      gridEl.appendChild(cell);
+    });
+  }
+  function onTap(cell,n){
+    if(timerHandle === null) return;
+    if(n === next){
+      haptic();
+      cell.classList.add('done');
+      next++;
+      document.getElementById('schulte-next').textContent = next<=25 ? next : 25;
+      if(next > 25){
+        tablesCompleted++;
+        document.getElementById('schulte-count').textContent = tablesCompleted;
+        next = 1;
+        timeLeft = totalTime;
+        buildGrid();
+      }
+    } else {
+      haptic('error');
+      cell.classList.add('wrong');
+      finish();
+    }
+  }
+  function tick(){
+    timeLeft -= 0.1;
+    if(timeLeft <= 0){ timeLeft = 0; updateBar(); finish(); return; }
+    updateBar();
+  }
+  function updateBar(){
+    document.getElementById('schulte-timerbar').style.width = (clamp(timeLeft/totalTime,0,1)*100)+'%';
+  }
+  function finish(){
+    if(timerHandle === null) return;
+    clearTimer(timerHandle); timerHandle = null;
+    setTimeout(()=> showResult('schulte', levelKey, tablesCompleted), 180);
+  }
+  function start(lvl){
+    levelKey = lvl;
+    totalTime = LEVEL_TIME[lvl];
+    timeLeft = totalTime;
+    next = 1; tablesCompleted = 0;
+    gridEl = document.getElementById('schulte-grid');
+    document.getElementById('schulte-next').textContent = '1';
+    document.getElementById('schulte-count').textContent = '0';
+    updateBar();
+    buildGrid();
+    clearTimer(timerHandle);
+    timerHandle = setInterval(tick, 100);
+    activeGameCleanup = stop;
+  }
+  function stop(){ clearTimer(timerHandle); timerHandle = null; }
+  return {start, stop};
+})();
+/* ===================== GAME: REVERSE ===================== */
+const ReverseGame = (function(){
+  const LEVEL_LEN = {easy:3, medium:5, hard:7};
+  let levelKey, targetLen, round, correctCount, sequence, userInput, cancelled, cancelTimer;
+
+  function setRoundText(){ document.getElementById('reverse-round').textContent = `${round}/10`; }
+  function setScoreText(){ document.getElementById('reverse-score').textContent = correctCount; }
+  function showReady(show){ document.getElementById('reverse-ready-wrap').style.display = show ? 'flex' : 'none'; }
+  function showSeq(show){ document.getElementById('reverse-sequence').style.display = show ? 'block' : 'none'; }
+  function showInput(show){ document.getElementById('reverse-input-wrap').style.display = show ? 'flex' : 'none'; }
+  function delay(ms){ return new Promise(res=>{ cancelTimer = setTimeout(res, ms); }); }
+
+  async function playSequence(){
+    showReady(false); showInput(false); showSeq(true);
+    const seqEl = document.getElementById('reverse-sequence');
+    for(let i=0;i<sequence.length;i++){
+      if(cancelled) return;
+      seqEl.textContent = sequence[i];
+      haptic();
+      await delay(800);
+      if(cancelled) return;
+      seqEl.textContent = '•';
+      await delay(250);
+    }
+    if(cancelled) return;
+    showSeq(false);
+    userInput = [];
+    renderInputDisplay();
+    showInput(true);
+  }
+  function buildNumpad(){
+    const pad = document.getElementById('reverse-numpad');
+    pad.innerHTML = '';
+    const keys = ['1','2','3','4','5','6','7','8','9','⌫','0',''];
+    keys.forEach(k=>{
+      const b = document.createElement('button');
+      if(k===''){ b.style.visibility = 'hidden'; pad.appendChild(b); return; }
+      b.textContent = k;
+      if(k==='⌫') b.classList.add('np-action');
+      b.addEventListener('click', ()=> onKey(k));
+      pad.appendChild(b);
+    });
+  }
+  function onKey(k){
+    haptic();
+    if(k==='⌫') userInput.pop();
+    else if(userInput.length < targetLen) userInput.push(k);
+    renderInputDisplay();
+    if(userInput.length === targetLen) checkAnswer();
+  }
+  function renderInputDisplay(){
+    document.getElementById('reverse-display').textContent = userInput.join(' ') || '—';
+  }
+  function checkAnswer(){
+    const expected = sequence.slice().reverse().map(String).join('');
+    const isCorrect = expected === userInput.join('');
+    if(isCorrect){ correctCount++; haptic('success'); } else { haptic('error'); }
+    setScoreText();
+    const disp = document.getElementById('reverse-display');
+    disp.classList.add(isCorrect ? 'flash-correct' : 'flash-wrong');
+    setTimeout(()=>{
+      disp.classList.remove('flash-correct','flash-wrong');
+      nextRound();
+    }, 700);
+  }
+  function nextRound(){
+    if(cancelled) return;
+    round++;
+    if(round > 10){ finish(); return; }
+    setRoundText();
+    sequence = Array.from({length:targetLen}, ()=> randInt(0,9));
+    playSequence();
+  }
+  function finish(){
+    showInput(false); showSeq(false); showReady(false);
+    showResult('reverse', levelKey, correctCount);
+  }
+  function start(lvl){
+    levelKey = lvl;
+    targetLen = LEVEL_LEN[lvl];
+    round = 1; correctCount = 0; cancelled = false;
+    setRoundText(); setScoreText();
+    buildNumpad();
+    sequence = Array.from({length:targetLen}, ()=> randInt(0,9));
+    showReady(true); showSeq(false); showInput(false);
+    document.getElementById('reverse-start-round').onclick = ()=>{ haptic(); playSequence(); };
+    activeGameCleanup = stop;
+  }
+  function stop(){ cancelled = true; clearTimer(cancelTimer); }
+  return {start, stop};
+})();
+/* ===================== GAME: STROOP ===================== */
+const StroopGame = (function(){
+  const COLORS = [
+    {key:'red', name:'Червоний', css:'#ff3b30'},
+    {key:'blue', name:'Синій', css:'#0a84ff'},
+    {key:'green', name:'Зелений', css:'#34c759'},
+    {key:'yellow', name:'Жовтий', css:'#ffd60a'},
+  ];
+  let timeLeft, score, currentInk, timerHandle;
+
+  function buildButtons(){
+    const wrap = document.getElementById('stroop-buttons');
+    wrap.innerHTML = '';
+    COLORS.forEach(c=>{
+      const b = document.createElement('button');
+      b.className = 'btn stroop-btn';
+      b.textContent = c.name;
+      b.style.background = c.css;
+      b.style.color = c.key==='yellow' ? '#1a1a00' : '#fff';
+      b.addEventListener('click', ()=> onTap(c.key));
+      wrap.appendChild(b);
+    });
+  }
+  function nextWord(){
+    const wordColor = COLORS[randInt(0,3)];
+    let inkColor;
+    do{ inkColor = COLORS[randInt(0,3)]; } while(inkColor.key === wordColor.key);
+    currentInk = inkColor.key;
+    const el = document.getElementById('stroop-word');
+    el.textContent = wordColor.name.toUpperCase();
+    el.style.color = inkColor.css;
+  }
+  function onTap(key){
+    if(timerHandle === null) return;
+    if(key === currentInk){ score++; haptic(); }
+    else { haptic('error'); timeLeft = Math.max(0, timeLeft-1); }
+    document.getElementById('stroop-score').textContent = score;
+    nextWord();
+  }
+  function tick(){
+    timeLeft -= 0.1;
+    if(timeLeft <= 0){ timeLeft = 0; updateUI(); finish(); return; }
+    updateUI();
+  }
+  function updateUI(){
+    document.getElementById('stroop-time').textContent = Math.ceil(timeLeft);
+    document.getElementById('stroop-timerbar').style.width = (clamp(timeLeft/60,0,1)*100)+'%';
+  }
+  function finish(){
+    clearTimer(timerHandle); timerHandle = null;
+    showResult('stroop', null, score);
+  }
+  function start(){
+    timeLeft = 60; score = 0;
+    document.getElementById('stroop-score').textContent = '0';
+    buildButtons();
+    nextWord();
+    updateUI();
+    clearTimer(timerHandle);
+    timerHandle = setInterval(tick, 100);
+    activeGameCleanup = stop;
+  }
+  function stop(){ clearTimer(timerHandle); timerHandle = null; }
+  return {start, stop};
+})();
+/* ===================== GAME: SIMON ===================== */
+const SimonGame = (function(){
+  const POOL_SIZE = {easy:3, medium:6, hard:9};
+  const PALETTE = ['#ff3b30','#ff9500','#ffcc00','#34c759','#00c7be','#0a84ff','#5856d6','#af52de','#ff2d55'];
+  let levelKey, poolSize, sequence, playerIndex, cells, playing, cancelled, timeoutHandle;
+
+  function buildGrid(){
+    const grid = document.getElementById('simon-grid');
+    grid.innerHTML = '';
+    cells = [];
+    for(let i=0;i<9;i++){
+      const cell = document.createElement('button');
+      cell.className = 'simon-cell ' + (i < poolSize ? 'active-pool' : 'inactive-pool');
+      cell.style.color = PALETTE[i];
+      cell.addEventListener('click', ()=> onCellTap(i));
+      grid.appendChild(cell);
+      cells.push(cell);
+    }
+  }
+  function delay(ms){ return new Promise(res=>{ timeoutHandle = setTimeout(res, ms); }); }
+  function lightCell(i, duration){
+    return new Promise(resolve=>{
+      const cell = cells[i];
+      cell.classList.add('lit');
+      cell.style.background = PALETTE[i];
+      haptic();
+      timeoutHandle = setTimeout(()=>{
+        cell.classList.remove('lit');
+        cell.style.background = '';
+        if(cancelled) return resolve();
+        timeoutHandle = setTimeout(resolve, 180);
+      }, duration);
+    });
+  }
+  async function playSequence(){
+    playing = true;
+    document.getElementById('simon-status').textContent = 'Дивись уважно...';
+    await delay(500);
+    for(let i=0;i<sequence.length;i++){
+      if(cancelled) return;
+      await lightCell(sequence[i], 480);
+    }
+    if(cancelled) return;
+    playing = false;
+    playerIndex = 0;
+    document.getElementById('simon-status').textContent = 'Повтори послідовність';
+  }
+  function onCellTap(i){
+    if(playing || cancelled) return;
+    const cell = cells[i];
+    if(!cell.classList.contains('active-pool')) return;
+    cell.classList.add('lit'); cell.style.background = PALETTE[i];
+    setTimeout(()=>{ cell.classList.remove('lit'); cell.style.background = ''; }, 220);
+
+    if(sequence[playerIndex] === i){
+      haptic();
+      playerIndex++;
+      if(playerIndex === sequence.length){
+        document.getElementById('simon-length').textContent = sequence.length;
+        haptic('success');
+        setTimeout(nextRound, 600);
+      }
+    } else {
+      haptic('error');
+      finish();
+    }
+  }
+  function nextRound(){
+    if(cancelled) return;
+    sequence.push(randInt(0, poolSize-1));
+    playSequence();
+  }
+  function finish(){
+    playing = true;
+    showResult('simon', levelKey, Math.max(0, sequence.length-1));
+  }
+  function start(lvl){
+    levelKey = lvl;
+    poolSize = POOL_SIZE[lvl];
+    sequence = []; playerIndex = 0; cancelled = false;
+    document.getElementById('simon-length').textContent = '0';
+    buildGrid();
+    nextRound();
+    activeGameCleanup = stop;
+  }
+  function stop(){ cancelled = true; clearTimer(timeoutHandle); }
+  return {start, stop};
+})();
+/* ===================== GAME: MATH ===================== */
+const MathGame = (function(){
+  const LEVELS = {
+    easy:{ops:['+','-'], max:20},
+    medium:{ops:['+','-','×'], max:100, mulMax:12},
+    hard:{ops:['+','-','×'], max:500, mulMax:25},
+  };
+  let levelKey, timeLeft, score, timerHandle, correctAnswer;
+
+  function genProblem(){
+    const cfg = LEVELS[levelKey];
+    const op = cfg.ops[randInt(0,cfg.ops.length-1)];
+    let a,b,answer,text;
+    if(op==='+'){
+      a = randInt(1,cfg.max); b = randInt(1,cfg.max);
+      answer = a+b; text = `${a} + ${b}`;
+    } else if(op==='-'){
+      a = randInt(1,cfg.max); b = randInt(1,cfg.max);
+      if(b>a){ const t=a; a=b; b=t; }
+      answer = a-b; text = `${a} − ${b}`;
+    } else {
+      a = randInt(2,cfg.mulMax); b = randInt(2,cfg.mulMax);
+      answer = a*b; text = `${a} × ${b}`;
+    }
+    correctAnswer = answer;
+    document.getElementById('math-problem').textContent = text;
+    buildOptions(answer);
+  }
+  function buildOptions(correct){
+    const opts = new Set([correct]);
+    let guard = 0;
+    while(opts.size < 4 && guard < 50){
+      guard++;
+      const offset = randInt(1, Math.max(5, Math.round(Math.abs(correct)*0.3)+3));
+      const candidate = correct + (Math.random()<0.5 ? offset : -offset);
+      if(candidate !== correct) opts.add(candidate);
+    }
+    const arr = shuffle(Array.from(opts));
+    const wrap = document.getElementById('math-options');
+    wrap.innerHTML = '';
+    arr.forEach(val=>{
+      const b = document.createElement('button');
+      b.className = 'math-opt';
+      b.textContent = val;
+      b.addEventListener('click', ()=> onAnswer(val,b));
+      wrap.appendChild(b);
+    });
+  }
+  function onAnswer(val, btn){
+    if(timerHandle === null) return;
+    const correct = val === correctAnswer;
+    if(correct){ score++; haptic(); btn.classList.add('flash-correct'); }
+    else { haptic('error'); btn.classList.add('flash-wrong'); }
+    document.getElementById('math-score').textContent = score;
+    document.querySelectorAll('#math-options button').forEach(b=> b.disabled = true);
+    setTimeout(()=>{
+      if(timerHandle === null) return;
+      genProblem();
+    }, 320);
+  }
+  function tick(){
+    timeLeft -= 0.1;
+    if(timeLeft <= 0){ timeLeft = 0; updateUI(); finish(); return; }
+    updateUI();
+  }
+  function updateUI(){
+    document.getElementById('math-time').textContent = Math.ceil(timeLeft);
+    document.getElementById('math-timerbar').style.width = (clamp(timeLeft/90,0,1)*100)+'%';
+  }
+  function finish(){
+    clearTimer(timerHandle); timerHandle = null;
+    showResult('math', levelKey, score);
+  }
+  function start(lvl){
+    levelKey = lvl; timeLeft = 90; score = 0;
+    document.getElementById('math-score').textContent = '0';
+    genProblem();
+    updateUI();
+    clearTimer(timerHandle);
+    timerHandle = setInterval(tick, 100);
+    activeGameCleanup = stop;
+  }
+  function stop(){ clearTimer(timerHandle); timerHandle = null; }
+  return {start, stop};
+})();
+/* ===================== GAME: DIFF ===================== */
+const DiffGame = (function(){
+  // Tiers go from very-different pairs to near-identical pairs, picked by current score.
+  const TIERS = [
+    [['🍎','🚗'],['⭐','🐶'],['🎈','📦'],['🌙','👟']],
+    [['🍎','🍊'],['🐶','🐱'],['⚽','🏀'],['🌸','🌼']],
+    [['😀','😃'],['🔵','🟣'],['🟢','🟡'],['❤️','🧡']],
+    [['😀','😄'],['👍','👌'],['⬆️','⬇️'],['➕','➖']],
+  ];
+  let timeLeft, score, timerHandle, diffIndex, locked;
+
+  function renderRow(id, symbols, interactive){
+    const row = document.getElementById(id);
+    row.innerHTML = '';
+    symbols.forEach((sym,i)=>{
+      const cell = document.createElement('button');
+      cell.className = 'diff-cell';
+      cell.textContent = sym;
+      if(interactive) cell.addEventListener('click', ()=> onTap(i,cell));
+      row.appendChild(cell);
+    });
+  }
+  function newRound(){
+    const tier = TIERS[clamp(Math.floor(score/3), 0, TIERS.length-1)];
+    const pair = tier[randInt(0, tier.length-1)];
+    diffIndex = randInt(0,4);
+    locked = false;
+    const top = Array(5).fill(pair[0]);
+    const bottom = Array(5).fill(pair[0]);
+    bottom[diffIndex] = pair[1];
+    renderRow('diff-row-top', top, false);
+    renderRow('diff-row-bottom', bottom, true);
+  }
+  function onTap(i, cell){
+    if(locked || timerHandle === null) return;
+    if(i === diffIndex){
+      locked = true;
+      score++; haptic('success');
+      cell.classList.add('found');
+      document.getElementById('diff-score').textContent = score;
+      setTimeout(newRound, 450);
+    } else {
+      haptic('error');
+      cell.classList.add('wrong-tap');
+      setTimeout(()=> cell.classList.remove('wrong-tap'), 300);
+    }
+  }
+  function tick(){
+    timeLeft -= 0.1;
+    if(timeLeft <= 0){ timeLeft = 0; updateUI(); finish(); return; }
+    updateUI();
+  }
+  function updateUI(){
+    document.getElementById('diff-time').textContent = Math.ceil(timeLeft);
+    document.getElementById('diff-timerbar').style.width = (clamp(timeLeft/30,0,1)*100)+'%';
+  }
+  function finish(){
+    clearTimer(timerHandle); timerHandle = null;
+    showResult('diff', null, score);
+  }
+  function start(){
+    timeLeft = 30; score = 0;
+    document.getElementById('diff-score').textContent = '0';
+    newRound();
+    updateUI();
+    clearTimer(timerHandle);
+    timerHandle = setInterval(tick, 100);
+    activeGameCleanup = stop;
+  }
+  function stop(){ clearTimer(timerHandle); timerHandle = null; }
+  return {start, stop};
+})();
+/* ===================== GAME: REACTION ===================== */
+const ReactionGame = (function(){
+  let round, times, state, goAt, timeoutHandle, zone;
+
+  function setText(main, sub){
+    document.getElementById('reaction-main-text').textContent = main;
+    document.getElementById('reaction-sub-text').textContent = sub || '';
+  }
+  function setRoundText(){ document.getElementById('reaction-round').textContent = `${round}/10`; }
+  function setAvgText(){
+    if(times.length === 0){ document.getElementById('reaction-avg').textContent = '—'; return; }
+    const avg = times.reduce((a,b)=>a+b,0)/times.length;
+    document.getElementById('reaction-avg').textContent = Math.round(avg)+' мс';
+  }
+  function ratingFor(ms){
+    if(ms<200) return 'Елітна реакція!';
+    if(ms<300) return 'Чудово!';
+    if(ms<400) return 'Добре';
+    return 'Тренуйся ще';
+  }
+  function finalRatingLabel(avg){
+    if(avg<200) return 'Рівень: Elite 🏆';
+    if(avg<300) return 'Рівень: Excellent';
+    if(avg<400) return 'Рівень: Good';
+    return 'Рівень: Practice';
+  }
+  function scheduleGo(){
+    state = 'waiting';
+    zone.classList.remove('go','early');
+    setText('Чекай на зелений колір...', '');
+    const wait = randInt(1000,4000);
+    timeoutHandle = setTimeout(()=>{
+      state = 'go';
+      goAt = performance.now();
+      zone.classList.add('go');
+      setText('ТИСНИ!', '');
+      haptic();
+    }, wait);
+  }
+  function onZoneTap(){
+    if(state === 'waiting'){
+      clearTimer(timeoutHandle);
+      state = 'early';
+      zone.classList.add('early');
+      haptic('error');
+      setText('Зарано!', 'Чекай на зелений колір');
+      timeoutHandle = setTimeout(scheduleGo, 900);
+    } else if(state === 'go'){
+      const rt = performance.now() - goAt;
+      times.push(rt);
+      state = 'result';
+      zone.classList.remove('go');
+      setText(Math.round(rt)+' мс', ratingFor(rt));
+      haptic('success');
+      setRoundText(); setAvgText();
+      timeoutHandle = setTimeout(()=>{
+        round++;
+        if(round > 10) finish();
+        else { setRoundText(); scheduleGo(); }
+      }, 900);
+    } else if(state === 'idle'){
+      round = 1; times = [];
+      setRoundText(); setAvgText();
+      scheduleGo();
+    }
+  }
+  function finish(){
+    const avg = times.reduce((a,b)=>a+b,0)/times.length;
+    showResult('reaction', null, avg, finalRatingLabel(avg));
+  }
+  function start(){
+    zone = document.getElementById('reaction-zone');
+    zone.onclick = onZoneTap;
+    state = 'idle'; times = []; round = 1;
+    zone.classList.remove('go','early');
+    setText('Натисни, щоб почати', '');
+    document.getElementById('reaction-round').textContent = '1/10';
+    document.getElementById('reaction-avg').textContent = '—';
+    activeGameCleanup = stop;
+  }
+  function stop(){ clearTimer(timeoutHandle); if(zone) zone.onclick = null; }
+  return {start, stop};
+})();
+
+/* ===================== GAME: MEMORY MATCH ===================== */
+const MemoryGame = (function(){
+  const LEVEL_CFG = {
+    novice:{cols:4, pairs:8, pool:['🐶','🚗','⭐','🍕','🌙','⚽','🎈','📚']},
+    amateur:{cols:5, pairs:10, pool:['🐶','🐱','🐭','🐹','🍎','🍊','🍋','🍇','🚗','🚕']},
+    pro:{cols:6, pairs:12, pool:['😀','😃','😄','😁','🟢','🟩','🔵','🟦','👍','👌','✋','🤚']},
+  };
+  let levelKey, cards, flipped, matchedCount, moves, startTime, timerHandle, locked, gridEl;
+
+  function buildCards(cfg){
+    const symbols = cfg.pool.slice(0, cfg.pairs);
+    const deck = shuffle(symbols.concat(symbols));
+    return deck.map((sym,i)=>({ index:i, symbol:sym, matched:false }));
+  }
+  function render(cfg){
+    gridEl.style.gridTemplateColumns = `repeat(${cfg.cols},1fr)`;
+    gridEl.innerHTML = '';
+    cards.forEach(card=>{
+      const el = document.createElement('button');
+      el.className = 'memory-card';
+      gridEl.appendChild(el);
+      card.el = el;
+      el.addEventListener('click', ()=> onTap(card));
+    });
+  }
+  function flip(card){
+    haptic();
+    card.el.classList.add('flipped');
+    card.el.textContent = card.symbol;
+  }
+  function onTap(card){
+    if(timerHandle === null || locked || card.matched) return;
+    if(card.el.classList.contains('flipped')) return;
+    if(flipped.length >= 2) return;
+    flip(card);
+    flipped.push(card);
+    if(flipped.length === 2){
+      moves++;
+      document.getElementById('memory-moves').textContent = moves;
+      locked = true;
+      const [a,b] = flipped;
+      if(a.symbol === b.symbol){
+        haptic('success');
+        a.matched = true; b.matched = true;
+        a.el.classList.add('matched'); b.el.classList.add('matched');
+        matchedCount += 2;
+        flipped = [];
+        locked = false;
+        if(matchedCount === cards.length) finish();
+      } else {
+        haptic('error');
+        a.el.classList.add('mismatch'); b.el.classList.add('mismatch');
+        setTimeout(()=>{
+          a.el.classList.remove('flipped','mismatch');
+          b.el.classList.remove('flipped','mismatch');
+          a.el.textContent = ''; b.el.textContent = '';
+          flipped = [];
+          locked = false;
+        }, 1000);
+      }
+    }
+  }
+  function tick(){
+    const elapsed = (performance.now()-startTime)/1000;
+    document.getElementById('memory-time').textContent = elapsed.toFixed(1)+'с';
+  }
+  function finish(){
+    clearTimer(timerHandle); timerHandle = null;
+    const elapsed = (performance.now()-startTime)/1000;
+    showResult('memory', levelKey, elapsed, `Ходів: ${moves}`);
+  }
+  function start(lvl){
+    levelKey = lvl;
+    const cfg = LEVEL_CFG[lvl];
+    cards = buildCards(cfg);
+    flipped = []; matchedCount = 0; moves = 0; locked = false;
+    gridEl = document.getElementById('memory-grid');
+    document.getElementById('memory-time').textContent = '0.0с';
+    document.getElementById('memory-moves').textContent = '0';
+    render(cfg);
+    startTime = performance.now();
+    clearTimer(timerHandle);
+    timerHandle = setInterval(tick, 100);
+    activeGameCleanup = stop;
+  }
+  function stop(){ clearTimer(timerHandle); timerHandle = null; }
+  return {start, stop, _peekCards: ()=> cards.map(c=>c.symbol)};
+})();
+
+/* ===================== GAME: REMEMBER POSITIONS ===================== */
+const PositionsGame = (function(){
+  const LEVEL_CFG = {
+    novice:{showTime:2000, startDots:2},
+    amateur:{showTime:1500, startDots:3},
+    pro:{showTime:1000, startDots:4},
+  };
+  let levelKey, cfg, round, totalScore, cells, dotPositions, playerTaps, timeoutHandle, phase;
+
+  function buildGrid(){
+    const grid = document.getElementById('positions-grid');
+    grid.innerHTML = '';
+    cells = [];
+    for(let i=0;i<16;i++){
+      const cell = document.createElement('button');
+      cell.className = 'positions-cell';
+      cell.addEventListener('click', ()=> onTap(i));
+      grid.appendChild(cell);
+      cells.push(cell);
+    }
+  }
+  function setRoundText(){ document.getElementById('positions-round').textContent = `${round}/10`; }
+  function setScoreText(){ document.getElementById('positions-score').textContent = totalScore; }
+  function setStatus(t){ document.getElementById('positions-status').textContent = t; }
+
+  function startRound(){
+    phase = 'showing';
+    cells.forEach(c=> c.className = 'positions-cell');
+    const dotCount = Math.min(16, cfg.startDots + (round-1));
+    const indices = shuffle(Array.from({length:16},(_,i)=>i)).slice(0, dotCount);
+    dotPositions = new Set(indices);
+    playerTaps = new Set();
+    setStatus("Запам'ятай позиції крапок");
+    indices.forEach(i=> cells[i].classList.add('dot-shown'));
+    timeoutHandle = setTimeout(()=>{
+      indices.forEach(i=> cells[i].classList.remove('dot-shown'));
+      phase = 'guessing';
+      setStatus(`Тапни на позиції крапок (${dotPositions.size})`);
+    }, cfg.showTime);
+  }
+  function onTap(i){
+    if(phase !== 'guessing') return;
+    if(playerTaps.has(i)) return;
+    playerTaps.add(i);
+    if(dotPositions.has(i)){
+      cells[i].classList.add('correct');
+      totalScore++;
+      haptic('success');
+    } else {
+      cells[i].classList.add('wrong');
+      haptic('error');
+    }
+    setScoreText();
+    if(playerTaps.size === dotPositions.size){
+      phase = 'pause';
+      timeoutHandle = setTimeout(nextRound, 700);
+    }
+  }
+  function nextRound(){
+    round++;
+    if(round > 10){ finish(); return; }
+    setRoundText();
+    startRound();
+  }
+  function finish(){
+    showResult('positions', levelKey, totalScore);
+  }
+  function start(lvl){
+    levelKey = lvl;
+    cfg = LEVEL_CFG[lvl];
+    round = 1; totalScore = 0;
+    setRoundText(); setScoreText();
+    buildGrid();
+    startRound();
+    activeGameCleanup = stop;
+  }
+  function stop(){ clearTimer(timeoutHandle); phase = 'stopped'; }
+  return {start, stop, _peekDots: ()=> Array.from(dotPositions)};
+})();
+
+/* ===================== GAME: N-BACK ===================== */
+const NBackGame = (function(){
+  const LEVEL_N = {novice:1, amateur:2, pro:3};
+  const POOL = ['A','B','C','D','E','F','G','H'];
+  const TRIAL_TIME = 2000;
+  let levelKey, n, trial, score, sequence, answered, timeoutHandle, displayEl;
+
+  function buildSequence(){
+    const seq = [];
+    for(let i=0;i<20;i++){
+      if(i>=n && Math.random()<0.35){
+        seq.push(seq[i-n]);
+      } else {
+        let letter;
+        do{ letter = POOL[randInt(0,POOL.length-1)]; } while(i>=n && letter===seq[i-n]);
+        seq.push(letter);
+      }
+    }
+    return seq;
+  }
+  function setRoundText(){ document.getElementById('nback-round').textContent = `${trial+1}/20`; }
+  function setScoreText(){ document.getElementById('nback-score').textContent = score; }
+
+  function showTrial(){
+    answered = false;
+    displayEl.classList.remove('flash-ok','flash-bad');
+    displayEl.textContent = sequence[trial];
+    setRoundText();
+    timeoutHandle = setTimeout(()=> onAnswer(null), TRIAL_TIME);
+  }
+  function correctAnswerForTrial(){
+    if(trial < n) return false;
+    return sequence[trial] === sequence[trial-n];
+  }
+  function onAnswer(userSaysYes){
+    if(answered) return;
+    answered = true;
+    clearTimer(timeoutHandle);
+    const correct = correctAnswerForTrial();
+    const gotIt = userSaysYes !== null && userSaysYes === correct;
+    if(gotIt){ score++; haptic('success'); displayEl.classList.add('flash-ok'); }
+    else { haptic('error'); displayEl.classList.add('flash-bad'); }
+    setScoreText();
+    timeoutHandle = setTimeout(()=>{
+      trial++;
+      if(trial >= 20){ finish(); return; }
+      showTrial();
+    }, 500);
+  }
+  function finish(){
+    showResult('nback', levelKey, score, "N-back тренує робочу пам'ять та концентрацію уваги");
+  }
+  function start(lvl){
+    levelKey = lvl;
+    n = LEVEL_N[lvl];
+    trial = 0; score = 0;
+    sequence = buildSequence();
+    displayEl = document.getElementById('nback-display');
+    document.getElementById('nback-badge').textContent = n+'-back';
+    setScoreText();
+    document.getElementById('nback-btn-yes').onclick = ()=>{ haptic(); onAnswer(true); };
+    document.getElementById('nback-btn-no').onclick = ()=>{ haptic(); onAnswer(false); };
+    showTrial();
+    activeGameCleanup = stop;
+  }
+  function stop(){ clearTimer(timeoutHandle); answered = true; }
+  return {start, stop, _peekSequence: ()=> sequence, _peekN: ()=> n};
+})();
+
+/* ===================== BOOTSTRAP ===================== */
+const GAME_MODULES = {
+  schulte: SchulteGame,
+  reverse: ReverseGame,
+  stroop: StroopGame,
+  simon: SimonGame,
+  math: MathGame,
+  diff: DiffGame,
+  reaction: ReactionGame,
+  memory: MemoryGame,
+  positions: PositionsGame,
+  nback: NBackGame,
+};
+
+renderMain();
+
+window.goTo = goTo; // temporary verification hook, removed before ship
+window.__BRAINUP_DEBUG__ = {
+  memoryCards: ()=> MemoryGame._peekCards(),
+  positionsDots: ()=> PositionsGame._peekDots(),
+  nbackSeq: ()=> NBackGame._peekSequence(),
+  nbackN: ()=> NBackGame._peekN(),
+};
+
+// Best-effort offline cache via an inline service worker (kept single-file via a Blob URL).
+if('serviceWorker' in navigator){
+  try{
+    const swSrc = `
+      const CACHE='brainup-v1';
+      self.addEventListener('install', e=> self.skipWaiting());
+      self.addEventListener('activate', e=> self.clients.claim());
+      self.addEventListener('fetch', e=>{
+        e.respondWith(
+          caches.open(CACHE).then(cache=>
+            cache.match(e.request).then(cached=>{
+              const fetchPromise = fetch(e.request).then(res=>{
+                cache.put(e.request, res.clone());
+                return res;
+              }).catch(()=> cached);
+              return cached || fetchPromise;
+            })
+          )
+        );
+      });
+    `;
+    const blobUrl = URL.createObjectURL(new Blob([swSrc], {type:'application/javascript'}));
+    navigator.serviceWorker.register(blobUrl).catch(()=>{});
+  }catch(e){ /* ignore, app still works fully without offline cache */ }
+}
+</script>
+</body>
+</html>
