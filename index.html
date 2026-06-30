@@ -41,6 +41,9 @@
   --c-memory:#a29bfe;
   --c-positions:#74b9ff;
   --c-nback:#55efc4;
+  --c-tracking:#fd79a8;
+  --c-maze:#6ab04c;
+  --c-assoc:#e17055;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{
@@ -162,6 +165,23 @@ ul{list-style:none;}
 .schulte-cell.done{background:var(--success);color:#04210c;opacity:.55;}
 .schulte-cell.wrong{background:var(--danger);}
 .schulte-next-hint{font-size:14px;color:var(--text-dim);}
+/* Schulte progression */
+.schulte-progress{display:flex;gap:4px;justify-content:center;align-items:center;flex-shrink:0;margin-bottom:6px;}
+.schulte-dot{
+  width:26px;height:26px;border-radius:50%;font-size:9px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid transparent;
+  transition:background .2s ease, transform .15s ease, box-shadow .15s ease;
+}
+.schulte-dot.novice-tier{background:rgba(108,92,231,.18);border-color:rgba(108,92,231,.45);color:#a29bfe;}
+.schulte-dot.amateur-tier{background:rgba(0,210,255,.14);border-color:rgba(0,210,255,.4);color:#00cec9;}
+.schulte-dot.pro-tier{background:rgba(255,204,0,.12);border-color:rgba(255,204,0,.4);color:#ffd60a;}
+.schulte-dot.s-done{background:var(--success);border-color:var(--success);color:#fff;}
+.schulte-dot.s-failed{background:var(--danger);border-color:var(--danger);color:#fff;}
+.schulte-dot.s-current{transform:scale(1.22);box-shadow:0 0 0 2px var(--bg),0 0 0 4px rgba(255,255,255,.35);}
+.schulte-dot.tier-sep{margin-left:8px;}
+.schulte-tier-label{font-size:12.5px;font-weight:600;color:var(--text-dim);text-align:center;flex-shrink:0;margin-bottom:4px;}
+.schulte-penalty-line{height:16px;flex-shrink:0;text-align:center;font-size:12px;font-weight:800;color:var(--danger);opacity:0;transition:opacity .15s ease;pointer-events:none;margin-bottom:2px;}
 
 /* Number pad (reverse numbers game) */
 .numpad-display{
@@ -275,6 +295,102 @@ ul{list-style:none;}
 .nback-btn{flex:1;min-height:58px;border-radius:var(--radius-sm);font-size:17px;}
 .nback-yes{background:linear-gradient(135deg,var(--success),#1f8a3a);color:#fff;}
 .nback-no{background:linear-gradient(135deg,var(--danger),#a8231a);color:#fff;}
+
+/* ---------- Visual Tracking (Game 11) ---------- */
+.tracking-arena{
+  position:relative;flex:1;width:100%;border-radius:var(--radius);
+  background:var(--bg-card);border:1px solid var(--border);overflow:hidden;
+  touch-action:none;
+}
+.tracking-obj{position:absolute;border-radius:50%;transform:translate(-50%,-50%);cursor:pointer;}
+.tracking-status{font-size:15px;font-weight:600;text-align:center;flex-shrink:0;padding:6px 0;min-height:32px;}
+.tracking-countdown{
+  height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-bottom:6px;flex-shrink:0;
+}
+.tracking-countdown-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--c-tracking),#e84393);transition:width .05s linear;}
+
+/* ---------- Maze (Game 12) ---------- */
+.maze-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:0;padding:4px;touch-action:none;}
+#maze-canvas{border-radius:10px;display:block;touch-action:none;}
+
+/* ---------- Associations (Game 13) ---------- */
+.assoc-progress{height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;margin-bottom:12px;flex-shrink:0;}
+.assoc-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--success),var(--accent-2));transition:width .1s linear;}
+.assoc-words{display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px;}
+.assoc-word{
+  min-height:54px;border-radius:var(--radius-sm);background:var(--bg-card);
+  border:2px solid var(--border);font-size:17px;font-weight:600;
+  transition:transform .1s ease, background .15s ease, border-color .15s ease;
+}
+.assoc-word:active{transform:scale(.96);}
+.assoc-word.correct{background:rgba(52,199,89,.25);border-color:var(--success);}
+.assoc-word.wrong{background:rgba(255,59,48,.25);border-color:var(--danger);}
+.assoc-word.reveal{background:rgba(52,199,89,.25);border-color:var(--success);}
+
+/* ---------- Two-player competitive mode ---------- */
+.player-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;}
+.player-select-title{font-size:22px;font-weight:800;}
+.player-select-sub{font-size:14px;color:var(--text-dim);}
+.player-btn-row{display:flex;gap:14px;width:100%;max-width:300px;}
+.player-big-btn{
+  flex:1;min-height:96px;border-radius:var(--radius);background:var(--bg-card);
+  border:2px solid var(--border);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:6px;font-size:30px;
+  transition:transform .15s ease,border-color .15s ease;
+}
+.player-big-btn:active{transform:scale(.95);}
+.player-big-btn .pb-label{font-size:15px;font-weight:700;color:var(--text);}
+.player-big-btn.selected{border-color:var(--accent);background:rgba(108,92,231,.12);}
+.comp-banner{
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+  background:var(--bg-card);border-radius:var(--radius-sm);padding:10px 14px;
+  margin-bottom:14px;border:1px solid var(--border);flex-shrink:0;font-size:13px;
+}
+.comp-banner.hidden{display:none;}
+.cb-me{font-weight:700;color:var(--accent-2);}
+.cb-them{font-weight:700;color:var(--warning);}
+.cb-vs{font-size:11px;color:var(--text-dim);}
+.toast{
+  position:fixed;bottom:calc(var(--safe-b) + 72px);left:50%;
+  transform:translateX(-50%) translateY(14px);
+  background:#1e1e2e;border:1px solid var(--border);border-radius:14px;
+  padding:10px 22px;font-size:14px;font-weight:600;
+  opacity:0;transition:opacity .22s,transform .22s;pointer-events:none;z-index:9999;
+  white-space:nowrap;box-shadow:0 6px 24px rgba(0,0,0,.7);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.menu-top-row{display:flex;justify-content:flex-end;margin-bottom:4px;flex-shrink:0;}
+.menu-settings-btn{
+  width:40px;height:40px;border-radius:50%;background:var(--bg-card);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:17px;
+}
+.game-card.played-today{opacity:.5;}
+.played-badge{position:absolute;top:8px;right:10px;font-size:13px;color:var(--success);font-weight:700;}
+.menu-scoreboard-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  background:var(--bg-card);border-radius:var(--radius-sm);padding:13px 16px;
+  border:1px solid var(--border);font-size:14px;font-weight:600;margin-top:12px;flex-shrink:0;
+}
+.sb-today{background:var(--bg-card);border-radius:var(--radius);padding:18px;border:1px solid var(--border);margin-bottom:14px;flex-shrink:0;}
+.sb-today-title{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;}
+.sb-vs-row{display:flex;align-items:center;gap:8px;}
+.sb-player{flex:1;text-align:center;}
+.sbp-name{font-size:12px;color:var(--text-dim);margin-bottom:4px;}
+.sbp-pts{font-size:30px;font-weight:800;}
+.sbp-pts.lead{color:var(--success);}
+.sbp-games{font-size:11px;color:var(--text-dim);margin-top:2px;}
+.sb-vs{font-size:13px;color:var(--text-dim);font-weight:700;}
+.sb-wins-row{display:flex;gap:10px;margin-bottom:14px;flex-shrink:0;}
+.sb-win-card{flex:1;background:var(--bg-card);border-radius:var(--radius-sm);padding:14px 8px;text-align:center;border:1px solid var(--border);}
+.swc-name{font-size:12px;color:var(--text-dim);margin-bottom:4px;}
+.swc-n{font-size:26px;font-weight:800;color:var(--star);}
+.swc-label{font-size:11px;color:var(--text-dim);}
+.sb-hist-title{font-size:14px;font-weight:700;margin-bottom:8px;flex-shrink:0;}
+.sb-hist-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg-card);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:8px;border:1px solid var(--border);font-size:13px;}
+.sh-date{color:var(--text-dim);font-size:12px;}
+.sh-winner{font-weight:700;}
+.sh-scores{font-size:12px;color:var(--text-dim);}
+.sb-empty,.sb-offline{color:var(--text-dim);text-align:center;font-size:14px;padding:18px 0;}
 </style>
 </head>
 <body>
@@ -282,6 +398,9 @@ ul{list-style:none;}
 
   <!-- ===================== MAIN MENU ===================== -->
   <section class="screen active" id="screen-main">
+    <div class="menu-top-row">
+      <button class="menu-settings-btn" id="menu-settings-btn" title="Змінити гравця">⚙️</button>
+    </div>
     <div class="app-header">
       <div class="app-logo">🧠</div>
       <h1 class="app-title">BrainUp</h1>
@@ -292,7 +411,11 @@ ul{list-style:none;}
       <div class="streak-badge"><span>🔥</span><span id="streak-text">0 днів підряд</span></div>
     </div>
 
+    <div class="comp-banner hidden" id="comp-banner"></div>
+
     <div class="cards-grid" id="cards-grid"></div>
+
+    <button class="menu-scoreboard-btn" id="menu-scoreboard-btn">🏆 Таблиця результатів</button>
 
     <div class="stats-bar">
       <div class="stat"><b id="stat-sessions">0</b><span>Сесій зіграно</span></div>
@@ -317,10 +440,13 @@ ul{list-style:none;}
       <button class="back-btn" data-nav="main">‹</button>
       <div class="title">Таблиця Шульте</div>
     </div>
+    <div class="schulte-progress" id="schulte-progress"></div>
+    <div class="schulte-tier-label" id="schulte-tier-label">Таблиця 1/9 — Новачок</div>
     <div class="timer-bar-track"><div class="timer-bar-fill" id="schulte-timerbar"></div></div>
+    <div class="schulte-penalty-line" id="schulte-penalty-line"></div>
     <div class="hud-row">
       <span>Шукай: <b id="schulte-next">1</b></span>
-      <span>Таблиць пройдено: <b id="schulte-count">0</b></span>
+      <span>Очки: <b id="schulte-score">0</b></span>
     </div>
     <div class="game-stage">
       <div class="schulte-grid" id="schulte-grid"></div>
@@ -487,6 +613,83 @@ ul{list-style:none;}
     </div>
   </section>
 
+  <!-- ===================== GAME 11: VISUAL TRACKING ===================== -->
+  <section class="screen" id="screen-tracking">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Стеж за об'єктом</div>
+    </div>
+    <div class="hud-row">
+      <span>Раунд: <b id="tracking-round">1/5</b></span>
+      <span>Очки: <b id="tracking-score">0</b></span>
+    </div>
+    <div class="tracking-status" id="tracking-status">Готуйся...</div>
+    <div class="tracking-countdown"><div class="tracking-countdown-fill" id="tracking-cd-fill" style="width:100%"></div></div>
+    <div class="tracking-arena" id="tracking-arena"></div>
+  </section>
+
+  <!-- ===================== GAME 12: MAZE ===================== -->
+  <section class="screen" id="screen-maze">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Лабіринт на швидкість</div>
+    </div>
+    <div class="hud-row">
+      <span>⏱ <b id="maze-time">0.0с</b></span>
+      <span>Рекорд: <b id="maze-best-hud">—</b></span>
+    </div>
+    <div class="maze-wrap">
+      <canvas id="maze-canvas"></canvas>
+    </div>
+  </section>
+
+  <!-- ===================== GAME 13: ASSOCIATIONS ===================== -->
+  <section class="screen" id="screen-assoc">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Асоціації</div>
+    </div>
+    <div class="assoc-progress"><div class="assoc-progress-fill" id="assoc-timerbar" style="width:100%"></div></div>
+    <div class="hud-row">
+      <span>Питання: <b id="assoc-round">1/10</b></span>
+      <span>Правильно: <b id="assoc-score">0</b></span>
+    </div>
+    <div class="game-stage">
+      <p class="result-label">Знайди зайве слово</p>
+      <div class="assoc-words" id="assoc-words"></div>
+    </div>
+  </section>
+
+  <!-- ===================== PLAYER SELECT ===================== -->
+  <section class="screen" id="screen-player">
+    <div class="player-wrap">
+      <div class="app-logo">🧠</div>
+      <div class="player-select-title">Хто грає?</div>
+      <div class="player-select-sub">Вибери свій профіль на цьому пристрої</div>
+      <div class="player-btn-row">
+        <button class="player-big-btn" id="pbtn-bohdan" data-player-id="bohdan">
+          🧑<span class="pb-label">Богдан</span>
+        </button>
+        <button class="player-big-btn" id="pbtn-druzhyna" data-player-id="druzhyna">
+          👩<span class="pb-label">Дружина</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SCOREBOARD ===================== -->
+  <section class="screen" id="screen-scoreboard">
+    <div class="top-bar">
+      <button class="back-btn" data-nav="main">‹</button>
+      <div class="title">Таблиця результатів</div>
+    </div>
+    <div class="sb-today" id="sb-today-box"><p class="sb-offline">Завантаження...</p></div>
+    <div class="sb-wins-row" id="sb-wins-row"></div>
+    <div class="sb-hist-title">Попередні дні</div>
+    <div id="sb-history"><p class="sb-empty">Ще немає завершених днів</p></div>
+    <div class="bottom-pad"></div>
+  </section>
+
   <!-- ===================== RESULT SCREEN (shared) ===================== -->
   <section class="screen" id="screen-result">
     <div class="top-bar">
@@ -504,24 +707,20 @@ ul{list-style:none;}
     </div>
   </section>
 
+  <div class="toast" id="app-toast"></div>
 </div>
 
 <script>
 'use strict';
 /* ===================== CONFIG ===================== */
-const GAME_ORDER = ['schulte','reverse','stroop','simon','math','diff','reaction','memory','positions','nback'];
+const GAME_ORDER = ['schulte','reverse','stroop','simon','math','diff','reaction','memory','positions','nback','tracking','maze','assoc'];
 
 const GAMES = {
   schulte:{
-    name:'Таблиця Шульте', icon:'🔢', color:'var(--c-schulte)', hasLevels:true,
-    levels:[
-      {key:'novice',name:'Новачок',desc:'60 секунд на таблицю'},
-      {key:'amateur',name:'Любитель',desc:'40 секунд на таблицю'},
-      {key:'pro',name:'Профі',desc:'25 секунд на таблицю'},
-    ],
+    name:'Таблиця Шульте', icon:'🔢', color:'var(--c-schulte)', hasLevels:false,
     higherBetter:true,
-    formatScore:v=> v==null?'—': v+' '+(v===1?'таблиця':(v>=2&&v<=4?'таблиці':'таблиць')),
-    stars:score=> score>=5?3:score>=3?2:1,
+    formatScore:v=> v==null?'—': v+' очок',
+    stars:score=> score>=130?3:score>=90?2:1,
   },
   reverse:{
     name:'Числа навпаки', icon:'🔁', color:'var(--c-reverse)', hasLevels:true,
@@ -606,6 +805,34 @@ const GAMES = {
     higherBetter:true,
     formatScore:v=> v==null?'—': v+'/20',
     stars:score=> score>=16?3:score>=10?2:1,
+  },
+  tracking:{
+    name:"Стеж за об'єктом", icon:'👁', color:'var(--c-tracking)', hasLevels:true,
+    levels:[
+      {key:'novice',name:'Новачок',desc:'4 пастки, повільний рух'},
+      {key:'amateur',name:'Любитель',desc:'6 пасток, середня швидкість'},
+      {key:'pro',name:'Профі',desc:'8 пасток, швидко + мерехтіння'},
+    ],
+    higherBetter:true,
+    formatScore:v=> v==null?'—': v+'/5',
+    stars:score=> score>=5?3:score>=3?2:1,
+  },
+  maze:{
+    name:'Лабіринт', icon:'🌀', color:'var(--c-maze)', hasLevels:true,
+    levels:[
+      {key:'novice',name:'8×8',desc:'Малий лабіринт'},
+      {key:'amateur',name:'10×10',desc:'Середній лабіринт'},
+      {key:'pro',name:'12×12',desc:'Великий лабіринт'},
+    ],
+    higherBetter:false,
+    formatScore:v=> v==null?'—': v.toFixed(1)+'с',
+    stars:score=> _mazeStars(score),
+  },
+  assoc:{
+    name:'Асоціації', icon:'🔤', color:'var(--c-assoc)', hasLevels:false,
+    higherBetter:true,
+    formatScore:v=> v==null?'—': v+'/10',
+    stars:score=> score>=9?3:score>=6?2:1,
   },
 };
 /* ===================== STORAGE ===================== */
@@ -724,26 +951,39 @@ function renderMain(){
   document.getElementById('stat-sessions').textContent = DATA.totalSessions;
   document.getElementById('stat-avg').textContent = DATA.totalSessions ? Math.round(DATA.scoreSum/DATA.totalSessions)+'%' : '—';
 
+  renderCompBanner();
+
   const grid = document.getElementById('cards-grid');
   grid.innerHTML = '';
   GAME_ORDER.forEach(id=>{
     const cfg = GAMES[id];
     const best = getCardBest(id);
     const stars = best==null ? 0 : cfg.stars(best);
+    const played = isPlayedToday(id);
+    const todayEntry = getTodayEntry(id);
     const card = document.createElement('button');
-    card.className = 'game-card';
+    card.className = 'game-card' + (played ? ' played-today' : '');
+    const badgeHtml = played ? '<div class="played-badge">✓</div>' : '';
+    const bottomLine = played && todayEntry
+      ? `Сьогодні: ${cfg.formatScore(todayEntry.score)}`
+      : `Найкращий: ${cfg.formatScore(best)}`;
     card.innerHTML = `
       <div class="glow" style="background:${cfg.color}"></div>
+      ${badgeHtml}
       <div class="icon">${cfg.icon}</div>
       <div class="name">${cfg.name}</div>
       <div class="stars">${starString(stars)}</div>
-      <div class="best">Найкращий: ${cfg.formatScore(best)}</div>`;
+      <div class="best">${bottomLine}</div>`;
     card.addEventListener('click', ()=>{ haptic(); openGame(id); });
     grid.appendChild(card);
   });
 }
 
 function openGame(id){
+  if(getPlayer() && isPlayedToday(id)){
+    showToast('Вже зіграно сьогодні — наступна гра!');
+    return;
+  }
   currentGameId = id;
   const cfg = GAMES[id];
   if(cfg.hasLevels){ renderLevels(id); showScreen('levels'); }
@@ -777,6 +1017,7 @@ function startGame(id, levelKey){
 function showResult(gameId, levelKey, score, customLabel){
   const cfg = GAMES[gameId];
   const {stars, isNew, best} = recordResult(gameId, levelKey, score);
+  writeTodayResult(gameId, score, stars);
   document.getElementById('result-stars').innerHTML = starString(stars);
   document.getElementById('result-score').textContent = cfg.formatScore(score);
   document.getElementById('result-label').textContent = customLabel || cfg.name;
@@ -788,68 +1029,164 @@ function showResult(gameId, levelKey, score, customLabel){
 }
 /* ===================== GAME: SCHULTE ===================== */
 const SchulteGame = (function(){
-  const LEVEL_TIME = {novice:60, amateur:40, pro:25};
-  let next, tablesCompleted, timeLeft, totalTime, timerHandle, levelKey, gridEl;
+  const TABLES = [
+    {tier:'novice',  name:'Новачок',  time:60, base:10, penalty:3},
+    {tier:'novice',  name:'Новачок',  time:60, base:10, penalty:3},
+    {tier:'novice',  name:'Новачок',  time:60, base:10, penalty:3},
+    {tier:'amateur', name:'Любитель', time:40, base:20, penalty:4},
+    {tier:'amateur', name:'Любитель', time:40, base:20, penalty:4},
+    {tier:'amateur', name:'Любитель', time:40, base:20, penalty:4},
+    {tier:'pro',     name:'Профі',    time:25, base:30, penalty:5},
+    {tier:'pro',     name:'Профі',    time:25, base:30, penalty:5},
+    {tier:'pro',     name:'Профі',    time:25, base:30, penalty:5},
+  ];
+  const TIER_CLS = {novice:'novice-tier', amateur:'amateur-tier', pro:'pro-tier'};
+  let tblIdx, totalScore, results, next, timeLeft, timerHandle, gridEl, stopped;
+
+  function cur(){ return TABLES[tblIdx]; }
 
   function buildGrid(){
     gridEl.innerHTML = '';
-    const nums = shuffle(Array.from({length:25},(_,i)=>i+1));
-    nums.forEach(n=>{
+    shuffle(Array.from({length:25},(_,i)=>i+1)).forEach(n=>{
       const cell = document.createElement('button');
       cell.className = 'schulte-cell';
       cell.textContent = n;
-      cell.addEventListener('click', ()=>onTap(cell,n));
+      cell.addEventListener('click', ()=> onTap(cell, n));
       gridEl.appendChild(cell);
     });
   }
-  function onTap(cell,n){
-    if(timerHandle === null) return;
+
+  function onTap(cell, n){
+    if(!timerHandle || stopped) return;
     if(n === next){
       haptic();
       cell.classList.add('done');
       next++;
-      document.getElementById('schulte-next').textContent = next<=25 ? next : 25;
-      if(next > 25){
-        tablesCompleted++;
-        document.getElementById('schulte-count').textContent = tablesCompleted;
-        next = 1;
-        timeLeft = totalTime;
-        buildGrid();
-      }
+      document.getElementById('schulte-next').textContent = next <= 25 ? next : 25;
+      if(next > 25) tableCompleted();
     } else {
       haptic('error');
       cell.classList.add('wrong');
-      finish();
+      setTimeout(()=> cell.classList.remove('wrong'), 380);
+      const t = cur();
+      timeLeft = Math.max(0, timeLeft - t.penalty);
+      updateBar();
+      flashPenalty('-' + t.penalty + 'с');
+      if(timeLeft <= 0) tableTimedOut();
     }
   }
-  function tick(){
-    timeLeft -= 0.1;
-    if(timeLeft <= 0){ timeLeft = 0; updateBar(); finish(); return; }
-    updateBar();
+
+  function flashPenalty(text){
+    const el = document.getElementById('schulte-penalty-line');
+    if(!el) return;
+    el.textContent = text;
+    el.style.opacity = '1';
+    clearTimeout(el._t);
+    el._t = setTimeout(()=>{ el.style.opacity = '0'; }, 700);
   }
-  function updateBar(){
-    document.getElementById('schulte-timerbar').style.width = (clamp(timeLeft/totalTime,0,1)*100)+'%';
-  }
-  function finish(){
-    if(timerHandle === null) return;
+
+  function tableCompleted(){
     clearTimer(timerHandle); timerHandle = null;
-    setTimeout(()=> showResult('schulte', levelKey, tablesCompleted), 180);
+    const t = cur();
+    const speedBonus = Math.round((timeLeft / t.time) * t.base * 0.5);
+    const pts = t.base + speedBonus;
+    results[tblIdx] = {status:'done', pts};
+    totalScore += pts;
+    document.getElementById('schulte-score').textContent = totalScore;
+    renderDots();
+    haptic('success');
+    setTimeout(advanceTable, 650);
   }
-  function start(lvl){
-    levelKey = lvl;
-    totalTime = LEVEL_TIME[lvl];
-    timeLeft = totalTime;
-    next = 1; tablesCompleted = 0;
-    gridEl = document.getElementById('schulte-grid');
+
+  function tableTimedOut(){
+    if(!timerHandle && results[tblIdx]) return;
+    clearTimer(timerHandle); timerHandle = null;
+    timeLeft = 0; updateBar();
+    results[tblIdx] = {status:'failed', pts:0};
+    renderDots();
+    haptic('error');
+    setTimeout(advanceTable, 950);
+  }
+
+  function advanceTable(){
+    if(stopped) return;
+    tblIdx++;
+    if(tblIdx >= TABLES.length){ finishSession(); return; }
+    startTable();
+  }
+
+  function startTable(){
+    const t = cur();
+    timeLeft = t.time;
+    next = 1;
     document.getElementById('schulte-next').textContent = '1';
-    document.getElementById('schulte-count').textContent = '0';
+    document.getElementById('schulte-tier-label').textContent =
+      'Таблиця ' + (tblIdx + 1) + '/9 — ' + t.name;
+    const penEl = document.getElementById('schulte-penalty-line');
+    if(penEl) penEl.style.opacity = '0';
     updateBar();
+    renderDots();
     buildGrid();
     clearTimer(timerHandle);
     timerHandle = setInterval(tick, 100);
+  }
+
+  function tick(){
+    timeLeft -= 0.1;
+    if(timeLeft <= 0){ timeLeft = 0; updateBar(); tableTimedOut(); return; }
+    updateBar();
+  }
+
+  function updateBar(){
+    document.getElementById('schulte-timerbar').style.width =
+      (clamp(timeLeft / cur().time, 0, 1) * 100) + '%';
+  }
+
+  function renderDots(){
+    const el = document.getElementById('schulte-progress');
+    if(!el) return;
+    el.innerHTML = '';
+    TABLES.forEach((t, i)=>{
+      const dot = document.createElement('div');
+      const r = results[i];
+      let cls = 'schulte-dot ' + TIER_CLS[t.tier];
+      if(i === 3 || i === 6) cls += ' tier-sep';
+      if(r){
+        cls += r.status === 'done' ? ' s-done' : ' s-failed';
+        dot.textContent = r.status === 'done' ? '✓' : '✗';
+      } else if(i === tblIdx){
+        cls += ' s-current';
+        dot.textContent = i + 1;
+      } else {
+        dot.textContent = i + 1;
+      }
+      dot.className = cls;
+      el.appendChild(dot);
+    });
+  }
+
+  function finishSession(){
+    const ns = results.slice(0,3).reduce((s,r)=>s+r.pts,0);
+    const as = results.slice(3,6).reduce((s,r)=>s+r.pts,0);
+    const ps = results.slice(6,9).reduce((s,r)=>s+r.pts,0);
+    const label = 'Новачок: '+ns+'/30 · Любитель: '+as+'/60 · Профі: '+ps+'/90';
+    showResult('schulte', null, totalScore, label);
+  }
+
+  function start(){
+    tblIdx = 0; totalScore = 0; stopped = false;
+    results = Array.from({length:9}, ()=> null);
+    gridEl = document.getElementById('schulte-grid');
+    document.getElementById('schulte-score').textContent = '0';
+    startTable();
     activeGameCleanup = stop;
   }
-  function stop(){ clearTimer(timerHandle); timerHandle = null; }
+
+  function stop(){
+    stopped = true;
+    clearTimer(timerHandle); timerHandle = null;
+  }
+
   return {start, stop};
 })();
 /* ===================== GAME: REVERSE ===================== */
@@ -1575,6 +1912,721 @@ const NBackGame = (function(){
   return {start, stop, _peekSequence: ()=> sequence, _peekN: ()=> n};
 })();
 
+/* ===================== MAZE STARS HELPER (needs level context) ===================== */
+let _mazeLevelKey = 'novice';
+function _mazeStars(score){
+  const PAR = {novice:60, amateur:90, pro:130};
+  const par = PAR[_mazeLevelKey] || 60;
+  return score < par*0.5 ? 3 : score < par ? 2 : 1;
+}
+
+/* ===================== GAME: VISUAL TRACKING ===================== */
+const TrackingGame = (function(){
+  const LEVEL_CFG = {
+    novice:{distractors:4, speed:1.4, flicker:false},
+    amateur:{distractors:6, speed:2.2, flicker:false},
+    pro:{distractors:8, speed:3.0, flicker:true},
+  };
+  const SHOW_MS = 2200;
+  const MOVE_MS = 5000;
+  const ROUNDS = 5;
+
+  let levelKey, cfg, round, score, phase, stopFlag;
+  let objects = [], targetIdx;
+  let rafId, moveStart, arenaEl, cdHandle;
+
+  function arenaSize(){
+    const r = arenaEl.getBoundingClientRect();
+    return {w: r.width, h: r.height};
+  }
+
+  function createObjects(){
+    arenaEl.innerHTML = '';
+    objects = [];
+    const {w, h} = arenaSize();
+    const R = 20;
+    const total = cfg.distractors + 1;
+    targetIdx = randInt(0, total - 1);
+    for(let i = 0; i < total; i++){
+      const isTarget = i === targetIdx;
+      const el = document.createElement('div');
+      el.className = 'tracking-obj';
+      const size = R * 2;
+      el.style.cssText = `width:${size}px;height:${size}px;z-index:${isTarget?2:1};`;
+      if(isTarget){
+        el.style.background = 'radial-gradient(circle at 35% 35%, #ff9ff3, #e84393)';
+        el.style.boxShadow = '0 0 16px rgba(232,67,147,.8)';
+      } else {
+        el.style.background = 'radial-gradient(circle at 35% 35%, #ff7eb3, #c0325e)';
+        el.style.boxShadow = '0 0 8px rgba(192,50,94,.4)';
+        el.style.opacity = '0.82';
+      }
+      const x = randInt(R + 4, w - R - 4);
+      const y = randInt(R + 4, h - R - 4);
+      const spd = cfg.speed * (0.7 + Math.random() * 0.6);
+      const ang = Math.random() * Math.PI * 2;
+      objects.push({el, x, y, r:R, isTarget, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd});
+      arenaEl.appendChild(el);
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+    }
+  }
+
+  function raf(ts){
+    if(stopFlag || phase !== 'moving') return;
+    if(!moveStart) moveStart = ts;
+    const elapsed = ts - moveStart;
+    const {w, h} = arenaSize();
+    objects.forEach(obj => {
+      obj.x += obj.vx; obj.y += obj.vy;
+      if(obj.x - obj.r < 0){ obj.x = obj.r; obj.vx *= -1; }
+      if(obj.x + obj.r > w){ obj.x = w - obj.r; obj.vx *= -1; }
+      if(obj.y - obj.r < 0){ obj.y = obj.r; obj.vy *= -1; }
+      if(obj.y + obj.r > h){ obj.y = h - obj.r; obj.vy *= -1; }
+      obj.el.style.left = obj.x + 'px';
+      obj.el.style.top = obj.y + 'px';
+    });
+    if(cfg.flicker){
+      const t = objects[targetIdx];
+      const flick = Math.floor(elapsed / 280) % 4 === 0;
+      if(flick){
+        t.el.style.background = 'radial-gradient(circle at 35% 35%, #ff7eb3, #c0325e)';
+        t.el.style.opacity = '0.82';
+      } else {
+        t.el.style.background = 'radial-gradient(circle at 35% 35%, #ff9ff3, #e84393)';
+        t.el.style.opacity = '1';
+      }
+    }
+    const pct = clamp(1 - elapsed / MOVE_MS, 0, 1);
+    document.getElementById('tracking-cd-fill').style.width = (pct * 100) + '%';
+    if(elapsed >= MOVE_MS){ freeze(); return; }
+    rafId = requestAnimationFrame(raf);
+  }
+
+  function freeze(){
+    phase = 'guess';
+    cancelAnimationFrame(rafId);
+    const t = objects[targetIdx];
+    t.el.style.background = 'radial-gradient(circle at 35% 35%, #ff9ff3, #e84393)';
+    t.el.style.opacity = '1';
+    document.getElementById('tracking-cd-fill').style.width = '0%';
+    setStatus('Де була ціль? Торкнись її!');
+    objects.forEach((obj, i) => obj.el.addEventListener('click', () => onObjTap(i), {once:true}));
+  }
+
+  function onObjTap(i){
+    if(phase !== 'guess') return;
+    phase = 'done';
+    const correct = i === targetIdx;
+    if(correct){
+      score++;
+      haptic('success');
+      objects[i].el.style.background = 'radial-gradient(circle,#34c759,#1a8a3a)';
+      objects[i].el.style.boxShadow = '0 0 22px rgba(52,199,89,1)';
+    } else {
+      haptic('error');
+      objects[i].el.style.background = 'radial-gradient(circle,#ff3b30,#a00)';
+      objects[targetIdx].el.style.background = 'radial-gradient(circle,#34c759,#1a8a3a)';
+      objects[targetIdx].el.style.boxShadow = '0 0 22px rgba(52,199,89,1)';
+    }
+    document.getElementById('tracking-score').textContent = score;
+    setStatus(correct ? '✓ Вірно!' : '✗ Ціль виділено зеленим');
+    cdHandle = setTimeout(() => {
+      if(stopFlag) return;
+      round++;
+      if(round > ROUNDS) showResult('tracking', levelKey, score);
+      else startRound();
+    }, 1100);
+  }
+
+  function setStatus(t){ document.getElementById('tracking-status').textContent = t; }
+
+  function startRound(){
+    document.getElementById('tracking-round').textContent = `${round}/${ROUNDS}`;
+    document.getElementById('tracking-cd-fill').style.width = '100%';
+    createObjects();
+    phase = 'showing';
+    setStatus("Запам'ятай ціль (виділено)");
+    objects[targetIdx].el.style.transform = 'translate(-50%,-50%) scale(1.3)';
+    cdHandle = setTimeout(() => {
+      if(stopFlag) return;
+      objects[targetIdx].el.style.transform = 'translate(-50%,-50%) scale(1)';
+      phase = 'moving';
+      moveStart = null;
+      setStatus('Стеж за ціллю!');
+      rafId = requestAnimationFrame(raf);
+    }, SHOW_MS);
+  }
+
+  function start(lvl){
+    levelKey = lvl; cfg = LEVEL_CFG[lvl];
+    round = 1; score = 0; stopFlag = false;
+    arenaEl = document.getElementById('tracking-arena');
+    document.getElementById('tracking-score').textContent = '0';
+    startRound();
+    activeGameCleanup = stop;
+  }
+  function stop(){
+    stopFlag = true;
+    cancelAnimationFrame(rafId);
+    clearTimer(cdHandle);
+    phase = 'stopped';
+  }
+  return {start, stop};
+})();
+
+/* ===================== GAME: MAZE ===================== */
+const MazeGame = (function(){
+  const LEVEL_CFG = {novice:{size:8}, amateur:{size:10}, pro:{size:12}};
+  const N=1, E=2, S=4, W=8;
+  const OPP = {[N]:S,[E]:W,[S]:N,[W]:E};
+  const DX  = {[N]:0,[E]:1,[S]:0,[W]:-1};
+  const DY  = {[N]:-1,[E]:0,[S]:1,[W]:0};
+
+  let levelKey, cfg, maze, pr, pc, startTime, timerHandle, canvas, ctx, cs, stopped;
+  let touchStart = null;
+
+  function genMaze(sz){
+    const cells = Array.from({length:sz}, ()=> new Uint8Array(sz));
+    const vis   = Array.from({length:sz}, ()=> new Uint8Array(sz));
+    function dfs(r,c){
+      vis[r][c] = 1;
+      shuffle([N,E,S,W]).forEach(d=>{
+        const nr=r+DY[d], nc=c+DX[d];
+        if(nr<0||nr>=sz||nc<0||nc>=sz||vis[nr][nc]) return;
+        cells[r][c] |= d; cells[nr][nc] |= OPP[d];
+        dfs(nr,nc);
+      });
+    }
+    dfs(0,0);
+    return cells;
+  }
+
+  function layout(){
+    const wrap = document.querySelector('.maze-wrap');
+    const r = wrap.getBoundingClientRect();
+    const avail = Math.min(r.width, r.height) - 8;
+    cs = Math.floor(avail / cfg.size);
+    const total = cs * cfg.size;
+    canvas.width = total; canvas.height = total;
+    canvas.style.width = total+'px'; canvas.style.height = total+'px';
+  }
+
+  function draw(){
+    const sz = cfg.size;
+    ctx.fillStyle = '#1a1a24';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#5641d8'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    for(let r=0;r<sz;r++) for(let c=0;c<sz;c++){
+      const x=c*cs, y=r*cs, cell=maze[r][c];
+      if(!(cell&N)){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+cs,y);ctx.stroke();}
+      if(!(cell&E)){ctx.beginPath();ctx.moveTo(x+cs,y);ctx.lineTo(x+cs,y+cs);ctx.stroke();}
+      if(!(cell&S)){ctx.beginPath();ctx.moveTo(x,y+cs);ctx.lineTo(x+cs,y+cs);ctx.stroke();}
+      if(!(cell&W)){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+cs);ctx.stroke();}
+    }
+    // Start
+    ctx.fillStyle='rgba(0,210,255,0.18)'; ctx.fillRect(1,1,cs-2,cs-2);
+    // Finish
+    const fx=(sz-1)*cs, fy=(sz-1)*cs;
+    ctx.fillStyle='rgba(52,199,89,0.22)'; ctx.fillRect(fx+1,fy+1,cs-2,cs-2);
+    ctx.fillStyle='#34c759'; ctx.font=`${Math.round(cs*0.48)}px sans-serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('🏁', fx+cs/2, fy+cs/2);
+    // Player
+    ctx.beginPath();
+    ctx.arc(pc*cs+cs/2, pr*cs+cs/2, cs*0.28, 0, Math.PI*2);
+    ctx.fillStyle='#00d2ff'; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+  }
+
+  function move(dir){
+    if(stopped || !(maze[pr][pc]&dir)) return;
+    pr += DY[dir]; pc += DX[dir];
+    haptic();
+    draw();
+    if(pr===cfg.size-1 && pc===cfg.size-1) finish();
+  }
+
+  function onTS(e){ e.preventDefault(); touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY}; }
+  function onTE(e){
+    if(!touchStart) return; e.preventDefault();
+    const dx=e.changedTouches[0].clientX-touchStart.x;
+    const dy=e.changedTouches[0].clientY-touchStart.y;
+    touchStart=null;
+    if(Math.abs(dx)<18&&Math.abs(dy)<18) return;
+    move(Math.abs(dx)>Math.abs(dy) ? (dx>0?E:W) : (dy>0?S:N));
+  }
+  function onKD(e){
+    const MAP={ArrowUp:N,ArrowRight:E,ArrowDown:S,ArrowLeft:W,w:N,d:E,s:S,a:W};
+    const d=MAP[e.key]; if(d){e.preventDefault(); move(d);}
+  }
+
+  function tick(){
+    document.getElementById('maze-time').textContent=((performance.now()-startTime)/1000).toFixed(1)+'с';
+  }
+
+  function finish(){
+    clearTimer(timerHandle); timerHandle=null;
+    removeListeners();
+    const elapsed=(performance.now()-startTime)/1000;
+    _mazeLevelKey=levelKey;
+    setTimeout(()=> showResult('maze', levelKey, elapsed), 180);
+  }
+
+  function addListeners(){
+    const scr=document.getElementById('screen-maze');
+    scr.addEventListener('touchstart',onTS,{passive:false});
+    scr.addEventListener('touchend',onTE,{passive:false});
+    document.addEventListener('keydown',onKD);
+  }
+  function removeListeners(){
+    const scr=document.getElementById('screen-maze');
+    if(scr){scr.removeEventListener('touchstart',onTS);scr.removeEventListener('touchend',onTE);}
+    document.removeEventListener('keydown',onKD);
+  }
+
+  function start(lvl){
+    levelKey=lvl; _mazeLevelKey=lvl; cfg=LEVEL_CFG[lvl];
+    canvas=document.getElementById('maze-canvas'); ctx=canvas.getContext('2d');
+    stopped=false; pr=0; pc=0;
+    maze=genMaze(cfg.size);
+    layout(); draw();
+    const g=DATA.games['maze'];
+    const best=g&&g.bestByLevel?g.bestByLevel[lvl]:null;
+    document.getElementById('maze-best-hud').textContent=best!=null?best.toFixed(1)+'с':'—';
+    addListeners();
+    startTime=performance.now();
+    clearTimer(timerHandle);
+    timerHandle=setInterval(tick,100);
+    activeGameCleanup=stop;
+  }
+  function stop(){
+    stopped=true; clearTimer(timerHandle); timerHandle=null; removeListeners();
+  }
+  return {start, stop};
+})();
+
+/* ===================== GAME: ASSOCIATIONS ===================== */
+const AssocGame = (function(){
+  const BANK = [
+    {w:['Кіт','Собака','Ведмідь','Стілець','Вовк'],odd:3,cat:'Тварини'},
+    {w:['Орел','Горобець','Ластівка','Акула','Сова'],odd:3,cat:'Птахи'},
+    {w:['Карп','Щука','Окунь','Дельфін','Сом'],odd:3,cat:'Річкові риби'},
+    {w:['Слон','Жираф','Носоріг','Зебра','Пінгвін'],odd:4,cat:'Африканські тварини'},
+    {w:['Собака','Кіт','Хом\'як','Папуга','Крокодил'],odd:4,cat:'Домашні улюбленці'},
+    {w:['Яблуко','Банан','Груша','Морква','Апельсин'],odd:3,cat:'Фрукти'},
+    {w:['Картопля','Буряк','Морква','Огірок','Ананас'],odd:4,cat:'Овочі'},
+    {w:['Яблуко','Груша','Слива','Виноград','Цибуля'],odd:4,cat:'Фрукти'},
+    {w:['Хліб','Торт','Печиво','Суп','Пиріг'],odd:3,cat:'Випічка'},
+    {w:['Чай','Кава','Сік','Цукор','Вода'],odd:3,cat:'Напої'},
+    {w:['Сіль','Перець','Кориця','Огірок','Кмин'],odd:3,cat:'Спеції'},
+    {w:['Лікар','Вчитель','Пілот','Кермо','Юрист'],odd:3,cat:'Професії'},
+    {w:['Маляр','Скульптор','Поет','Молоток','Музикант'],odd:3,cat:'Творчі професії'},
+    {w:['Пожежник','Поліцейський','Рятувальник','Кухар','Солдат'],odd:3,cat:'Рятувальні служби'},
+    {w:['Радість','Смуток','Страх','Стіл','Гнів'],odd:3,cat:'Емоції'},
+    {w:['Любов','Ненависть','Заздрість','Надія','Грім'],odd:4,cat:'Почуття'},
+    {w:['Молоток','Цвях','Рубанок','Пилка','Книга'],odd:4,cat:'Інструменти'},
+    {w:['Ручка','Олівець','Маркер','Ніж','Крейда'],odd:3,cat:'Канцтовари'},
+    {w:['Стіл','Стілець','Шафа','Комод','Телефон'],odd:4,cat:'Меблі'},
+    {w:['Телефон','Планшет','Ноутбук','Підручник','Телевізор'],odd:3,cat:'Гаджети'},
+    {w:['Сорочка','Штани','Куртка','Черевик','Джемпер'],odd:3,cat:'Одяг'},
+    {w:['Капелюх','Шапка','Берет','Шарф','Тюбетейка'],odd:3,cat:'Головні убори'},
+    {w:['Дуб','Береза','Сосна','Троянда','Ялина'],odd:3,cat:'Дерева'},
+    {w:['Троянда','Тюльпан','Ромашка','Кульбаба','Береза'],odd:4,cat:'Квіти'},
+    {w:['Дощ','Сніг','Град','Вітер','Зірка'],odd:4,cat:'Погода'},
+    {w:['Автобус','Тролейбус','Трамвай','Таксі','Велосипед'],odd:4,cat:'Громадський транспорт'},
+    {w:['Корабель','Підводний човен','Яхта','Поїзд','Катер'],odd:3,cat:'Водний транспорт'},
+    {w:['Футбол','Баскетбол','Волейбол','Теніс','Шахи'],odd:4,cat:'Командні ігри'},
+    {w:['Біг','Стрибки','Плавання','Велоспорт','Шахи'],odd:4,cat:'Активний спорт'},
+    {w:['Весна','Літо','Осінь','Зима','Ранок'],odd:4,cat:'Пори року'},
+    {w:['Понеділок','Вівторок','Середа','Квітень','Четвер'],odd:3,cat:'Дні тижня'},
+    {w:['Січень','Лютий','Березень','Понеділок','Квітень'],odd:3,cat:'Місяці'},
+    {w:['Земля','Марс','Юпітер','Місяць','Венера'],odd:3,cat:'Планети'},
+    {w:['Зірка','Комета','Астероїд','Місяць','Хмара'],odd:4,cat:'Космос'},
+    {w:['Гітара','Скрипка','Арфа','Барабан','Мандоліна'],odd:3,cat:'Струнні інструменти'},
+    {w:['Флейта','Труба','Кларнет','Саксофон','Гітара'],odd:4,cat:'Духові інструменти'},
+    {w:['Київ','Харків','Дніпро','Одеса','Варшава'],odd:4,cat:'Міста України'},
+    {w:['Франція','Іспанія','Польща','Японія','Австрія'],odd:3,cat:'Країни Європи'},
+    {w:['Залізо','Мідь','Алюміній','Золото','Пісок'],odd:4,cat:'Метали'},
+    {w:['Математика','Фізика','Хімія','Біологія','Футбол'],odd:4,cat:'Шкільні предмети'},
+    {w:['Роман','Повість','Вірш','Поема','Стадіон'],odd:4,cat:'Літературні жанри'},
+    {w:['Червоний','Синій','Зелений','Жовтий','Квадрат'],odd:4,cat:'Кольори'},
+    {w:['Коло','Квадрат','Трикутник','Ромб','Парасоля'],odd:4,cat:'Геометричні фігури'},
+    {w:['Рука','Нога','Вухо','Ніс','Гора'],odd:4,cat:'Частини тіла'},
+    {w:['Серце','Легені','Печінка','Нирка','Стілець'],odd:4,cat:'Внутрішні органи'},
+    {w:['Ніж','Виделка','Ложка','Сковорода','Ополоник'],odd:3,cat:'Столові прибори'},
+    {w:['Чорний','Білий','Сірий','Бежевий','Синій'],odd:4,cat:'Нейтральні кольори'},
+    {w:['Лисиця','Їжак','Заєць','Вовк','Пінгвін'],odd:4,cat:'Лісові тварини'},
+    {w:['Ліс','Поле','Луг','Степ','Хмарочос'],odd:4,cat:'Природні зони'},
+    {w:['Гора','Пагорб','Скеля','Долина','Хмара'],odd:4,cat:'Форми рельєфу'},
+  ];
+
+  const Q_COUNT = 10;
+  const Q_TIME = 8;
+  let score, round, questions, answered, timerHandle, qTime, stopped;
+
+  function nextQ(){
+    if(stopped) return;
+    if(round > Q_COUNT){ showResult('assoc', null, score); return; }
+    document.getElementById('assoc-round').textContent = `${round}/${Q_COUNT}`;
+    const q = questions[round-1];
+    qTime = Q_TIME; answered = false;
+    const el = document.getElementById('assoc-words');
+    el.innerHTML = '';
+    q.w.forEach((word, i)=>{
+      const btn = document.createElement('button');
+      btn.className = 'assoc-word btn';
+      btn.textContent = word;
+      btn.addEventListener('click', ()=> onTap(i, q));
+      el.appendChild(btn);
+    });
+    updateBar();
+    clearTimer(timerHandle);
+    timerHandle = setInterval(tickQ, 100);
+  }
+
+  function tickQ(){
+    if(answered) return;
+    qTime -= 0.1;
+    if(qTime <= 0){ qTime = 0; updateBar(); onTimeout(); return; }
+    updateBar();
+  }
+
+  function updateBar(){
+    document.getElementById('assoc-timerbar').style.width = (clamp(qTime/Q_TIME,0,1)*100)+'%';
+  }
+
+  function onTap(i, q){
+    if(answered) return;
+    answered = true;
+    clearTimer(timerHandle);
+    const correct = i === q.odd;
+    const btns = document.querySelectorAll('#assoc-words .assoc-word');
+    if(correct){
+      score++;
+      haptic('success');
+      btns[i].classList.add('correct');
+    } else {
+      haptic('error');
+      btns[i].classList.add('wrong');
+      btns[q.odd].classList.add('reveal');
+    }
+    document.getElementById('assoc-score').textContent = score;
+    timerHandle = setTimeout(()=>{ round++; nextQ(); }, 900);
+  }
+
+  function onTimeout(){
+    if(answered) return;
+    answered = true;
+    clearTimer(timerHandle);
+    haptic('error');
+    const btns = document.querySelectorAll('#assoc-words .assoc-word');
+    const q = questions[round-1];
+    if(btns[q.odd]) btns[q.odd].classList.add('reveal');
+    timerHandle = setTimeout(()=>{ round++; nextQ(); }, 900);
+  }
+
+  function start(){
+    score = 0; round = 1; stopped = false;
+    document.getElementById('assoc-score').textContent = '0';
+    questions = shuffle(BANK).slice(0, Q_COUNT);
+    nextQ();
+    activeGameCleanup = stop;
+  }
+  function stop(){ stopped = true; clearTimer(timerHandle); }
+  return {start, stop};
+})();
+
+/* ===================== TWO-PLAYER COMPETITIVE MODE ===================== */
+
+const PLAYER_STORE_KEY = 'brainup_player';
+const DAILY_STORE_KEY  = 'brainup_daily_v2';
+const DAY_CHECK_KEY    = 'brainup_day_chk';
+
+const PLAYERS = {
+  bohdan:   {id:'bohdan',   name:'Богдан',  avatar:'🧑'},
+  druzhyna: {id:'druzhyna', name:'Дружина', avatar:'👩'},
+};
+
+function getPlayer(){
+  try{ const v=localStorage.getItem(PLAYER_STORE_KEY); return v?JSON.parse(v):null; }catch(e){ return null; }
+}
+function setPlayer(id){
+  try{ localStorage.setItem(PLAYER_STORE_KEY, JSON.stringify(PLAYERS[id])); }catch(e){}
+}
+function getOpponentId(myId){ return myId==='bohdan'?'druzhyna':'bohdan'; }
+
+function getDailyCache(){
+  try{ const v=localStorage.getItem(DAILY_STORE_KEY); return v?JSON.parse(v):null; }catch(e){ return null; }
+}
+function saveDailyCache(d){ try{ localStorage.setItem(DAILY_STORE_KEY, JSON.stringify(d)); }catch(e){} }
+
+function getCurrentDayKey(){
+  return new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Kyiv'});
+}
+
+function ensureDailyCache(){
+  const today=getCurrentDayKey();
+  let dc=getDailyCache();
+  if(!dc||dc.dayKey!==today){ dc={dayKey:today,played:{}}; saveDailyCache(dc); }
+  return dc;
+}
+
+function isPlayedToday(gameId){
+  const dc=getDailyCache();
+  if(!dc||dc.dayKey!==getCurrentDayKey()) return false;
+  return !!dc.played[gameId];
+}
+
+function getTodayEntry(gameId){
+  const dc=getDailyCache();
+  if(!dc||dc.dayKey!==getCurrentDayKey()) return null;
+  return dc.played[gameId]||null;
+}
+
+/* ---- Firebase state ---- */
+let fbDb = null;
+let fbTodayOff = null;
+
+/* ---- In-memory live competition snapshot ---- */
+const COMP = {myScore:0, myGames:0, oppScore:0, oppGames:0, oppName:''};
+
+/* ---- Toast ---- */
+let _toastTimer = null;
+function showToast(msg){
+  const el=document.getElementById('app-toast');
+  if(!el) return;
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimer(_toastTimer);
+  _toastTimer=setTimeout(()=>el.classList.remove('show'), 2400);
+}
+
+/* ---- Dynamic script loader ---- */
+function loadScript(src){
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src=src; s.onload=res; s.onerror=rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function initFirebase(){
+  try{
+    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js');
+    if(typeof firebase==='undefined') return;
+    const app=firebase.apps.length
+      ? firebase.apps[0]
+      : firebase.initializeApp({
+          apiKey:'AIzaSyAQvhywHqtyC-gfoltBDbylnyatYLUspeQ',
+          authDomain:'brainup-game.firebaseapp.com',
+          databaseURL:'https://brainup-game-default-rtdb.europe-west1.firebasedatabase.app',
+          projectId:'brainup-game',
+          storageBucket:'brainup-game.firebasestorage.app',
+          messagingSenderId:'879006997942',
+          appId:'1:879006997942:web:d69c60d859fdb758f8f517',
+        });
+    fbDb=firebase.database(app);
+    onFirebaseReady();
+  }catch(e){/* Firebase unavailable — full offline mode */}
+}
+
+async function onFirebaseReady(){
+  await checkDailyWinner();
+  const player=getPlayer();
+  if(!player) return;
+  await syncLocalToFirebase(player.id);
+  subscribeToday(player.id);
+}
+
+function subscribeToday(myId){
+  if(!fbDb) return;
+  if(fbTodayOff){ fbTodayOff(); fbTodayOff=null; }
+  const oppId=getOpponentId(myId);
+  const dayKey=getCurrentDayKey();
+  const ref=fbDb.ref('days/'+dayKey);
+  const handler=snap=>{
+    const d=snap.val()||{};
+    const me=d[myId]||{};
+    const opp=d[oppId]||{};
+    COMP.myScore  = me.totalScore||0;
+    COMP.myGames  = Object.keys(me.games||{}).length;
+    COMP.oppScore = opp.totalScore||0;
+    COMP.oppGames = Object.keys(opp.games||{}).length;
+    COMP.oppName  = PLAYERS[oppId].name;
+    if(document.getElementById('screen-main').classList.contains('active')) renderCompBanner();
+  };
+  ref.on('value', handler);
+  fbTodayOff=()=>ref.off('value', handler);
+}
+
+function writeTodayResult(gameId, score, stars){
+  const player=getPlayer();
+  if(!player) return;
+  const dayKey=getCurrentDayKey();
+
+  /* Update local cache — only first result per game per day counts */
+  const dc=ensureDailyCache();
+  if(dc.played[gameId]) return;
+  dc.played[gameId]={score, stars, completedAt:Date.now()};
+  saveDailyCache(dc);
+
+  /* Update in-memory COMP for instant banner refresh */
+  COMP.myScore=Object.values(dc.played).reduce((s,v)=>s+(v.stars||0),0);
+  COMP.myGames=Object.keys(dc.played).length;
+
+  /* Write to Firebase */
+  if(!fbDb) return;
+  try{
+    fbDb.ref('days/'+dayKey+'/'+player.id+'/games/'+gameId)
+        .set({score, stars, completedAt:Date.now()});
+    fbDb.ref('days/'+dayKey+'/'+player.id+'/totalScore').set(COMP.myScore);
+  }catch(e){}
+}
+
+async function syncLocalToFirebase(playerId){
+  if(!fbDb) return;
+  const dc=getDailyCache();
+  if(!dc) return;
+  const today=getCurrentDayKey();
+  if(dc.dayKey!==today) return;
+  try{
+    const snap=await fbDb.ref('days/'+today+'/'+playerId+'/games').get();
+    const fbGames=snap.val()||{};
+    const writes=[];
+    for(const [gId,entry] of Object.entries(dc.played)){
+      if(!fbGames[gId]){
+        writes.push(fbDb.ref('days/'+today+'/'+playerId+'/games/'+gId)
+          .set({score:entry.score, stars:entry.stars, completedAt:entry.completedAt||Date.now()}));
+      }
+    }
+    if(writes.length){
+      await Promise.all(writes);
+      const all={...fbGames};
+      for(const [k,v] of Object.entries(dc.played)) if(!all[k]) all[k]=v;
+      const total=Object.values(all).reduce((s,v)=>s+(v.stars||0),0);
+      await fbDb.ref('days/'+today+'/'+playerId+'/totalScore').set(total);
+    }
+  }catch(e){}
+}
+
+async function checkDailyWinner(){
+  if(!fbDb) return;
+  const today=getCurrentDayKey();
+  const lastCheck=localStorage.getItem(DAY_CHECK_KEY)||'';
+  localStorage.setItem(DAY_CHECK_KEY, today);
+  if(!lastCheck||lastCheck===today) return;
+
+  /* Previous day has ended — determine winner */
+  try{
+    const histSnap=await fbDb.ref('history/'+lastCheck).get();
+    if(histSnap.val()) return; /* already recorded by the other device */
+
+    const daySnap=await fbDb.ref('days/'+lastCheck).get();
+    const dayData=daySnap.val()||{};
+    const bTotal=(dayData.bohdan||{}).totalScore||0;
+    const dTotal=(dayData.druzhyna||{}).totalScore||0;
+    if(bTotal===0&&dTotal===0) return; /* nobody played */
+
+    const winner=bTotal>dTotal?'bohdan':dTotal>bTotal?'druzhyna':'tie';
+    await fbDb.ref('history/'+lastCheck).set({
+      winner,
+      scores:{bohdan:bTotal, druzhyna:dTotal},
+    });
+    if(winner!=='tie'){
+      const wref=fbDb.ref('stats/'+winner+'/totalWins');
+      const wsnap=await wref.get();
+      await wref.set((wsnap.val()||0)+1);
+    }
+  }catch(e){}
+}
+
+function renderCompBanner(){
+  const banner=document.getElementById('comp-banner');
+  const player=getPlayer();
+  if(!banner) return;
+  if(!player){ banner.classList.add('hidden'); return; }
+  banner.classList.remove('hidden');
+
+  const oppName=COMP.oppName||PLAYERS[getOpponentId(player.id)].name;
+  const diff=COMP.myScore-COMP.oppScore;
+  const leadTxt=diff>0?'↑ Веду':diff<0?'↓ Відстаю':'→ Рівно';
+  const leadColor=diff>0?'var(--success)':diff<0?'var(--danger)':'var(--text-dim)';
+
+  /* Read local game count for "my" side (more accurate than Firebase before sync) */
+  const dc=getDailyCache();
+  const today=getCurrentDayKey();
+  const myLocal=(dc&&dc.dayKey===today)?Object.keys(dc.played).length:COMP.myGames;
+
+  banner.innerHTML=
+    `<span class="cb-me">${player.name}: ${COMP.myScore}★ (${myLocal}/13)</span>`+
+    `<span class="cb-vs" style="color:${leadColor};font-size:12px;font-weight:700">${leadTxt}</span>`+
+    `<span class="cb-them">${oppName}: ${COMP.oppScore}★ (${COMP.oppGames}/13)</span>`;
+}
+
+function renderScoreboard(){
+  const player=getPlayer();
+  const myId=player?player.id:'bohdan';
+  const oppId=getOpponentId(myId);
+  const today=getCurrentDayKey();
+  const dc=getDailyCache();
+  const myGames=(dc&&dc.dayKey===today)?Object.keys(dc.played).length:COMP.myGames;
+  const myLead=COMP.myScore>COMP.oppScore;
+  const oppLead=COMP.oppScore>COMP.myScore;
+
+  document.getElementById('sb-today-box').innerHTML=
+    `<div class="sb-today-title">СЬОГОДНІ — ${today}</div>`+
+    `<div class="sb-vs-row">`+
+      `<div class="sb-player"><div class="sbp-name">${PLAYERS[myId].name} (ти)</div>`+
+        `<div class="sbp-pts${myLead?' lead':''}">${COMP.myScore}★</div>`+
+        `<div class="sbp-games">${myGames}/13 ігор</div></div>`+
+      `<div class="sb-vs">VS</div>`+
+      `<div class="sb-player"><div class="sbp-name">${PLAYERS[oppId].name}</div>`+
+        `<div class="sbp-pts${oppLead?' lead':''}">${COMP.oppScore}★</div>`+
+        `<div class="sbp-games">${COMP.oppGames}/13 ігор</div></div>`+
+    `</div>`;
+
+  if(!fbDb){
+    document.getElementById('sb-wins-row').innerHTML='<p class="sb-offline" style="width:100%">Офлайн — повна статистика недоступна</p>';
+    document.getElementById('sb-history').innerHTML='';
+    return;
+  }
+
+  Promise.all([
+    fbDb.ref('stats').get(),
+    fbDb.ref('history').orderByKey().limitToLast(30).get(),
+  ]).then(([statsSnap,histSnap])=>{
+    const stats=statsSnap.val()||{};
+    const bWins=((stats.bohdan||{}).totalWins)||0;
+    const dWins=((stats.druzhyna||{}).totalWins)||0;
+    document.getElementById('sb-wins-row').innerHTML=
+      `<div class="sb-win-card"><div class="swc-name">Богдан</div><div class="swc-n">${bWins}</div><div class="swc-label">перемог</div></div>`+
+      `<div class="sb-win-card"><div class="swc-name">Дружина</div><div class="swc-n">${dWins}</div><div class="swc-label">перемог</div></div>`;
+
+    const hist=histSnap.val()||{};
+    const days=Object.keys(hist).sort().reverse();
+    document.getElementById('sb-history').innerHTML=days.length
+      ? days.map(d=>{
+          const e=hist[d]; const w=e.winner; const sc=e.scores||{};
+          const wName=w==='tie'?'Нічия':(PLAYERS[w]||{name:w}).name;
+          return `<div class="sb-hist-row">`+
+            `<span class="sh-date">${d}</span>`+
+            `<span class="sh-winner">${w==='tie'?'🤝':'🏆'} ${wName}</span>`+
+            `<span class="sh-scores">Б:${sc.bohdan||0}★ Д:${sc.druzhyna||0}★</span>`+
+          `</div>`;
+        }).join('')
+      : '<p class="sb-empty">Ще немає завершених днів</p>';
+  }).catch(()=>{});
+}
+
+function markCurrentPlayerBtns(){
+  const player=getPlayer();
+  document.querySelectorAll('.player-big-btn').forEach(btn=>{
+    btn.classList.toggle('selected', !!player&&player.id===btn.dataset.playerId);
+  });
+}
+
 /* ===================== BOOTSTRAP ===================== */
 const GAME_MODULES = {
   schulte: SchulteGame,
@@ -1587,9 +2639,47 @@ const GAME_MODULES = {
   memory: MemoryGame,
   positions: PositionsGame,
   nback: NBackGame,
+  tracking: TrackingGame,
+  maze: MazeGame,
+  assoc: AssocGame,
 };
 
-renderMain();
+/* ---- Wire player-select buttons ---- */
+document.querySelectorAll('.player-big-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    haptic();
+    setPlayer(btn.dataset.playerId);
+    markCurrentPlayerBtns();
+    goTo('main');
+    if(fbDb) subscribeToday(btn.dataset.playerId);
+  });
+});
+
+/* ---- Settings (switch player) ---- */
+const _settingsBtn = document.getElementById('menu-settings-btn');
+if(_settingsBtn) _settingsBtn.addEventListener('click', ()=>{
+  haptic(); markCurrentPlayerBtns(); showScreen('player');
+});
+
+/* ---- Scoreboard tab ---- */
+const _sbBtn = document.getElementById('menu-scoreboard-btn');
+if(_sbBtn) _sbBtn.addEventListener('click', ()=>{
+  haptic(); renderScoreboard(); showScreen('scoreboard');
+});
+
+/* ---- Initial render ---- */
+(function init(){
+  const player = getPlayer();
+  if(!player){
+    showScreen('player');
+  } else {
+    /* Refresh daily cache key on day change */
+    ensureDailyCache();
+    renderMain();
+  }
+  /* Load Firebase async — game works offline immediately */
+  initFirebase();
+})();
 
 window.goTo = goTo; // temporary verification hook, removed before ship
 window.__BRAINUP_DEBUG__ = {
