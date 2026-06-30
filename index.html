@@ -720,7 +720,7 @@ const GAMES = {
     name:'Таблиця Шульте', icon:'🔢', color:'var(--c-schulte)', hasLevels:false,
     higherBetter:true,
     formatScore:v=> v==null?'—': v+' очок',
-    stars:score=> score>=130?3:score>=90?2:1,
+    stars:score=> score>=190?3:score>=140?2:1,
   },
   reverse:{
     name:'Числа навпаки', icon:'🔁', color:'var(--c-reverse)', hasLevels:true,
@@ -737,7 +737,7 @@ const GAMES = {
     name:'Струп-тест', icon:'🎨', color:'var(--c-stroop)', hasLevels:false,
     higherBetter:true,
     formatScore:v=> v==null?'—': v+' очок',
-    stars:score=> score>=35?3:score>=20?2:1,
+    stars:score=> score>=50?3:score>=30?2:1,
   },
   simon:{
     name:"Пам'ять послідовності", icon:'🧩', color:'var(--c-simon)', hasLevels:true,
@@ -748,7 +748,7 @@ const GAMES = {
     ],
     higherBetter:true,
     formatScore:v=> v==null?'—': v+' '+(v===1?'крок':'кроків'),
-    stars:score=> score>=10?3:score>=6?2:1,
+    stars:score=> score>=14?3:score>=8?2:1,
   },
   math:{
     name:'Математика', icon:'➗', color:'var(--c-math)', hasLevels:true,
@@ -759,19 +759,19 @@ const GAMES = {
     ],
     higherBetter:true,
     formatScore:v=> v==null?'—': v+' прав.',
-    stars:score=> score>=20?3:score>=12?2:1,
+    stars:score=> score>=28?3:score>=16?2:1,
   },
   diff:{
     name:'Знайди відмінності', icon:'🔍', color:'var(--c-diff)', hasLevels:false,
     higherBetter:true,
     formatScore:v=> v==null?'—': v+' знайдено',
-    stars:score=> score>=10?3:score>=5?2:1,
+    stars:score=> score>=13?3:score>=7?2:1,
   },
   reaction:{
     name:'Реакція', icon:'⚡', color:'var(--c-reaction)', hasLevels:false,
     higherBetter:false,
     formatScore:v=> v==null?'—': Math.round(v)+' мс',
-    stars:score=> score<250?3:score<400?2:1,
+    stars:score=> score<220?3:score<350?2:1,
   },
   memory:{
     name:'Пари карток', icon:'🃏', color:'var(--c-memory)', hasLevels:true,
@@ -782,7 +782,7 @@ const GAMES = {
     ],
     higherBetter:false,
     formatScore:v=> v==null?'—': v.toFixed(1)+'с',
-    stars:score=> score<30?3:score<60?2:1,
+    stars:score=> score<25?3:score<50?2:1,
   },
   positions:{
     name:"Запам'ятай позиції", icon:'🔵', color:'var(--c-positions)', hasLevels:true,
@@ -793,7 +793,7 @@ const GAMES = {
     ],
     higherBetter:true,
     formatScore:v=> v==null?'—': v+' точок',
-    stars:score=> score>=50?3:score>=30?2:1,
+    stars:score=> score>=65?3:score>=40?2:1,
   },
   nback:{
     name:'N-back', icon:'🔄', color:'var(--c-nback)', hasLevels:true,
