@@ -2790,13 +2790,29 @@ window.__BRAINUP_DEBUG__ = {
   nbackN: ()=> NBackGame._peekN(),
 };
 
+<!-- Cache version is auto-derived from page content hash — no manual bumping needed. Changes to index.html automatically invalidate old caches. -->
 // Best-effort offline cache via an inline service worker (kept single-file via a Blob URL).
 if('serviceWorker' in navigator){
   try{
-    const swSrc = `
-      const CACHE='brainup-v1';
+    function simpleHash(str){
+      let hash=0;
+      for(let i=0;i<str.length;i++) hash=((hash<<5)-hash+str.charCodeAt(i))|0;
+      return Math.abs(hash).toString(36);
+    }
+    fetch(location.href,{cache:'no-store'})
+      .then(r=>r.text())
+      .then(src=>{
+        const AUTO_CACHE_VERSION=simpleHash(src);
+        const swSrc=`
+      const CACHE='brainup-${AUTO_CACHE_VERSION}';
       self.addEventListener('install', e=> self.skipWaiting());
-      self.addEventListener('activate', e=> self.clients.claim());
+      self.addEventListener('activate', e=>{
+        e.waitUntil(
+          caches.keys().then(keys=>
+            Promise.all(keys.filter(k=> k!==CACHE).map(k=> caches.delete(k)))
+          ).then(()=> self.clients.claim())
+        );
+      });
       self.addEventListener('fetch', e=>{
         e.respondWith(
           caches.open(CACHE).then(cache=>
@@ -2811,8 +2827,10 @@ if('serviceWorker' in navigator){
         );
       });
     `;
-    const blobUrl = URL.createObjectURL(new Blob([swSrc], {type:'application/javascript'}));
-    navigator.serviceWorker.register(blobUrl).catch(()=>{});
+        const blobUrl=URL.createObjectURL(new Blob([swSrc],{type:'application/javascript'}));
+        navigator.serviceWorker.register(blobUrl).catch(()=>{});
+      })
+      .catch(()=>{}); /* offline on first load — skip SW registration, app still works */
   }catch(e){ /* ignore, app still works fully without offline cache */ }
 }
 </script>
