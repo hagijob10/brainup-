@@ -10,8 +10,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0a0f">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href='data:application/manifest+json,{"name":"BrainUp","short_name":"BrainUp","start_url":"./","display":"standalone","background_color":"%230a0a0f","theme_color":"%230a0a0f"}'>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%236c5ce7'/%3E%3Ctext x='50' y='66' font-size='52' text-anchor='middle' fill='white' font-family='-apple-system'%3E%F0%9F%A7%A0%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href='data:application/manifest+json,{"name":"BrainUp","short_name":"BrainUp","start_url":"./","display":"standalone","background_color":"%230a0a0f","theme_color":"%230a0a0f","icons":[{"src":"./icon-192.png","sizes":"192x192","type":"image/png"},{"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"any%20maskable"}]}'>
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <style>
 :root{
   --bg:#0a0a0f;
@@ -671,7 +672,7 @@ ul{list-style:none;}
           🧑<span class="pb-label">Богдан</span>
         </button>
         <button class="player-big-btn" id="pbtn-druzhyna" data-player-id="druzhyna">
-          👩<span class="pb-label">Дружина</span>
+          👩<span class="pb-label">Мілочка 🌸</span>
         </button>
       </div>
     </div>
@@ -810,13 +811,15 @@ const GAMES = {
   tracking:{
     name:"Стеж за об'єктом", icon:'👁', color:'var(--c-tracking)', hasLevels:true,
     levels:[
-      {key:'novice',name:'Новачок',desc:'4 пастки, повільний рух'},
-      {key:'amateur',name:'Любитель',desc:'6 пасток, середня швидкість'},
-      {key:'pro',name:'Профі',desc:'8 пасток, швидко + мерехтіння'},
+      {key:'novice',  name:'Новачок',  desc:'4 кульки, повільний рух'},
+      {key:'amateur', name:'Любитель', desc:'6 кульок, середня швидкість'},
+      {key:'pro',     name:'Профі',    desc:'8 кульок, швидко + мерехтіння'},
+      {key:'expert',  name:'Експерт',  desc:'10 кульок, ще швидше'},
+      {key:'master',  name:'Майстер',  desc:'12 кульок, максимальна швидкість'},
     ],
     higherBetter:true,
-    formatScore:v=> v==null?'—': v+'/5',
-    stars:score=> score>=5?3:score>=3?2:1,
+    formatScore:v=> v==null?'—': v+'/6',
+    stars:score=> score===6?3:score>=5?2:1,
   },
   maze:{
     name:'Лабіринт', icon:'🌀', color:'var(--c-maze)', hasLevels:true,
@@ -1924,17 +1927,20 @@ function _mazeStars(score){
 /* ===================== GAME: VISUAL TRACKING ===================== */
 const TrackingGame = (function(){
   const LEVEL_CFG = {
-    novice:{distractors:4, speed:1.4, flicker:false},
-    amateur:{distractors:6, speed:2.2, flicker:false},
-    pro:{distractors:8, speed:3.0, flicker:true},
+    novice:  {distractors:4,  speed:1.4, flicker:false, flickerSpeed:280},
+    amateur: {distractors:6,  speed:2.0, flicker:false, flickerSpeed:280},
+    pro:     {distractors:8,  speed:2.6, flicker:true,  flickerSpeed:280},
+    expert:  {distractors:10, speed:3.2, flicker:true,  flickerSpeed:280},
+    master:  {distractors:12, speed:4.0, flicker:true,  flickerSpeed:180},
   };
   const SHOW_MS = 2200;
   const MOVE_MS = 5000;
-  const ROUNDS = 5;
+  const ROUNDS = 6;
 
   let levelKey, cfg, round, score, phase, stopFlag;
   let objects = [], targetIdx;
   let rafId, moveStart, arenaEl, cdHandle;
+  let roundBg, roundShadow;
 
   function arenaSize(){
     const r = arenaEl.getBoundingClientRect();
@@ -1948,25 +1954,26 @@ const TrackingGame = (function(){
     const R = 20;
     const total = cfg.distractors + 1;
     targetIdx = randInt(0, total - 1);
+    if(round % 2 === 0){
+      roundBg     = 'radial-gradient(circle at 35% 35%, #74b9ff, #0984e3)';
+      roundShadow = '0 0 8px rgba(9,132,227,.45)';
+    } else {
+      roundBg     = 'radial-gradient(circle at 35% 35%, #fd79a8, #e84393)';
+      roundShadow = '0 0 8px rgba(232,67,147,.45)';
+    }
     for(let i = 0; i < total; i++){
-      const isTarget = i === targetIdx;
       const el = document.createElement('div');
       el.className = 'tracking-obj';
       const size = R * 2;
-      el.style.cssText = `width:${size}px;height:${size}px;z-index:${isTarget?2:1};`;
-      if(isTarget){
-        el.style.background = 'radial-gradient(circle at 35% 35%, #ff9ff3, #e84393)';
-        el.style.boxShadow = '0 0 16px rgba(232,67,147,.8)';
-      } else {
-        el.style.background = 'radial-gradient(circle at 35% 35%, #ff7eb3, #c0325e)';
-        el.style.boxShadow = '0 0 8px rgba(192,50,94,.4)';
-        el.style.opacity = '0.82';
-      }
+      el.style.cssText = `width:${size}px;height:${size}px;z-index:1;`;
+      el.style.background = roundBg;
+      el.style.boxShadow = roundShadow;
+      el.style.opacity = '1';
       const x = randInt(R + 4, w - R - 4);
       const y = randInt(R + 4, h - R - 4);
       const spd = cfg.speed * (0.7 + Math.random() * 0.6);
       const ang = Math.random() * Math.PI * 2;
-      objects.push({el, x, y, r:R, isTarget, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd});
+      objects.push({el, x, y, r:R, isTarget:i===targetIdx, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd});
       arenaEl.appendChild(el);
       el.style.left = x + 'px';
       el.style.top = y + 'px';
@@ -1988,14 +1995,15 @@ const TrackingGame = (function(){
       obj.el.style.top = obj.y + 'px';
     });
     if(cfg.flicker){
+      const flickerInterval = cfg.flickerSpeed || 280;
       const t = objects[targetIdx];
-      const flick = Math.floor(elapsed / 280) % 4 === 0;
+      const flick = Math.floor(elapsed / flickerInterval) % 4 === 0;
       if(flick){
-        t.el.style.background = 'radial-gradient(circle at 35% 35%, #ff7eb3, #c0325e)';
-        t.el.style.opacity = '0.82';
+        t.el.style.background = 'radial-gradient(circle at 35% 35%, #ffeaa7, #fdcb6e)';
+        t.el.style.boxShadow  = '0 0 14px rgba(253,203,110,.9)';
       } else {
-        t.el.style.background = 'radial-gradient(circle at 35% 35%, #ff9ff3, #e84393)';
-        t.el.style.opacity = '1';
+        t.el.style.background = roundBg;
+        t.el.style.boxShadow  = roundShadow;
       }
     }
     const pct = clamp(1 - elapsed / MOVE_MS, 0, 1);
@@ -2048,10 +2056,16 @@ const TrackingGame = (function(){
     createObjects();
     phase = 'showing';
     setStatus("Запам'ятай ціль (виділено)");
-    objects[targetIdx].el.style.transform = 'translate(-50%,-50%) scale(1.3)';
+    const t = objects[targetIdx];
+    t.el.style.transform = 'translate(-50%,-50%) scale(1.3)';
+    t.el.style.background = 'radial-gradient(circle at 35% 35%, #ffeaa7, #f9ca24)';
+    t.el.style.boxShadow  = '0 0 24px rgba(249,202,36,1)';
     cdHandle = setTimeout(() => {
       if(stopFlag) return;
-      objects[targetIdx].el.style.transform = 'translate(-50%,-50%) scale(1)';
+      t.el.style.transform  = 'translate(-50%,-50%) scale(1)';
+      t.el.style.background = roundBg;
+      t.el.style.boxShadow  = roundShadow;
+      t.el.style.opacity    = '1';
       phase = 'moving';
       moveStart = null;
       setStatus('Стеж за ціллю!');
@@ -2346,7 +2360,7 @@ const DAY_CHECK_KEY    = 'brainup_day_chk';
 
 const PLAYERS = {
   bohdan:   {id:'bohdan',   name:'Богдан',  avatar:'🧑'},
-  druzhyna: {id:'druzhyna', name:'Дружина', avatar:'👩'},
+  druzhyna: {id:'druzhyna', name:'Мілочка 🌸', avatar:'👩'},
 };
 
 function getPlayer(){
@@ -2645,7 +2659,7 @@ function renderScoreboard(){
     const dWins=((stats.druzhyna||{}).totalWins)||0;
     document.getElementById('sb-wins-row').innerHTML=
       `<div class="sb-win-card"><div class="swc-name">Богдан</div><div class="swc-n">${bWins}</div><div class="swc-label">перемог</div></div>`+
-      `<div class="sb-win-card"><div class="swc-name">Дружина</div><div class="swc-n">${dWins}</div><div class="swc-label">перемог</div></div>`;
+      `<div class="sb-win-card"><div class="swc-name">Мілочка 🌸</div><div class="swc-n">${dWins}</div><div class="swc-label">перемог</div></div>`;
 
     const hist=histSnap.val()||{};
     const days=Object.keys(hist).sort().reverse();
