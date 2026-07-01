@@ -811,15 +811,15 @@ const GAMES = {
   tracking:{
     name:"Стеж за об'єктом", icon:'👁', color:'var(--c-tracking)', hasLevels:true,
     levels:[
-      {key:'novice',  name:'Новачок',  desc:'4 кульки, повільний рух'},
-      {key:'amateur', name:'Любитель', desc:'6 кульок, середня швидкість'},
-      {key:'pro',     name:'Профі',    desc:'8 кульок, швидко + мерехтіння'},
-      {key:'expert',  name:'Експерт',  desc:'10 кульок, ще швидше'},
-      {key:'master',  name:'Майстер',  desc:'12 кульок, максимальна швидкість'},
+      {key:'novice',  name:'Новачок',  desc:'3→6 кульок, складність зростає з кожним раундом'},
+      {key:'amateur', name:'Любитель', desc:'5→9 кульок, середня швидкість, що зростає'},
+      {key:'pro',     name:'Профі',    desc:'7→12 кульок + мерехтіння'},
+      {key:'expert',  name:'Експерт',  desc:'9→15 кульок, швидко + мерехтіння'},
+      {key:'master',  name:'Майстер',  desc:'11→18 кульок, максимальна складність'},
     ],
     higherBetter:true,
-    formatScore:v=> v==null?'—': v+'/6',
-    stars:score=> score===6?3:score>=5?2:1,
+    formatScore:v=> v==null?'—': v+'/10',
+    stars:score=> score>=9?3:score>=7?2:1,
   },
   maze:{
     name:'Лабіринт', icon:'🌀', color:'var(--c-maze)', hasLevels:true,
@@ -1927,24 +1927,35 @@ function _mazeStars(score){
 /* ===================== GAME: VISUAL TRACKING ===================== */
 const TrackingGame = (function(){
   const LEVEL_CFG = {
-    novice:  {distractors:4,  speed:1.4, flicker:false, flickerSpeed:280},
-    amateur: {distractors:6,  speed:2.0, flicker:false, flickerSpeed:280},
-    pro:     {distractors:8,  speed:2.6, flicker:true,  flickerSpeed:280},
-    expert:  {distractors:10, speed:3.2, flicker:true,  flickerSpeed:280},
-    master:  {distractors:12, speed:4.0, flicker:true,  flickerSpeed:180},
+    novice:  {dStart:3,  dEnd:6,  sStart:1.0, sEnd:1.8, flicker:false, flickerCycle:280},
+    amateur: {dStart:5,  dEnd:9,  sStart:1.6, sEnd:2.6, flicker:false, flickerCycle:280},
+    pro:     {dStart:7,  dEnd:12, sStart:2.2, sEnd:3.4, flicker:true,  flickerCycle:280},
+    expert:  {dStart:9,  dEnd:15, sStart:2.8, sEnd:4.2, flicker:true,  flickerCycle:220},
+    master:  {dStart:11, dEnd:18, sStart:3.4, sEnd:5.0, flicker:true,  flickerCycle:160},
   };
   const SHOW_MS = 2200;
   const MOVE_MS = 5000;
-  const ROUNDS = 6;
+  const ROUNDS = 10;
 
   let levelKey, cfg, round, score, phase, stopFlag;
   let objects = [], targetIdx;
   let rafId, moveStart, arenaEl, cdHandle;
   let roundBg, roundShadow;
+  let roundCfg;
 
   function arenaSize(){
     const r = arenaEl.getBoundingClientRect();
     return {w: r.width, h: r.height};
+  }
+
+  function getRoundConfig(c, r){
+    const t = (r - 1) / (ROUNDS - 1);
+    return {
+      distractors: Math.round(c.dStart + t * (c.dEnd - c.dStart)),
+      speed:       c.sStart + t * (c.sEnd - c.sStart),
+      flicker:     c.flicker,
+      flickerCycle:c.flickerCycle,
+    };
   }
 
   function createObjects(){
@@ -1952,7 +1963,7 @@ const TrackingGame = (function(){
     objects = [];
     const {w, h} = arenaSize();
     const R = 20;
-    const total = cfg.distractors + 1;
+    const total = roundCfg.distractors + 1;
     targetIdx = randInt(0, total - 1);
     if(round % 2 === 0){
       roundBg     = 'radial-gradient(circle at 35% 35%, #74b9ff, #0984e3)';
@@ -1967,16 +1978,16 @@ const TrackingGame = (function(){
       const size = R * 2;
       el.style.cssText = `width:${size}px;height:${size}px;z-index:1;`;
       el.style.background = roundBg;
-      el.style.boxShadow = roundShadow;
-      el.style.opacity = '1';
+      el.style.boxShadow  = roundShadow;
+      el.style.opacity    = '1';
       const x = randInt(R + 4, w - R - 4);
       const y = randInt(R + 4, h - R - 4);
-      const spd = cfg.speed * (0.7 + Math.random() * 0.6);
+      const spd = roundCfg.speed * (0.7 + Math.random() * 0.6);
       const ang = Math.random() * Math.PI * 2;
       objects.push({el, x, y, r:R, isTarget:i===targetIdx, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd});
       arenaEl.appendChild(el);
       el.style.left = x + 'px';
-      el.style.top = y + 'px';
+      el.style.top  = y + 'px';
     }
   }
 
@@ -1992,12 +2003,11 @@ const TrackingGame = (function(){
       if(obj.y - obj.r < 0){ obj.y = obj.r; obj.vy *= -1; }
       if(obj.y + obj.r > h){ obj.y = h - obj.r; obj.vy *= -1; }
       obj.el.style.left = obj.x + 'px';
-      obj.el.style.top = obj.y + 'px';
+      obj.el.style.top  = obj.y + 'px';
     });
-    if(cfg.flicker){
-      const flickerInterval = cfg.flickerSpeed || 280;
+    if(roundCfg.flicker){
       const t = objects[targetIdx];
-      const flick = Math.floor(elapsed / flickerInterval) % 4 === 0;
+      const flick = Math.floor(elapsed / roundCfg.flickerCycle) % 4 === 0;
       if(flick){
         t.el.style.background = 'radial-gradient(circle at 35% 35%, #ffeaa7, #fdcb6e)';
         t.el.style.boxShadow  = '0 0 14px rgba(253,203,110,.9)';
@@ -2015,9 +2025,13 @@ const TrackingGame = (function(){
   function freeze(){
     phase = 'guess';
     cancelAnimationFrame(rafId);
-    const t = objects[targetIdx];
-    t.el.style.background = 'radial-gradient(circle at 35% 35%, #ff9ff3, #e84393)';
-    t.el.style.opacity = '1';
+    // If flicker was mid-flash when the timer expired, restore the target to the
+    // shared base style so all balls look identical before the player taps.
+    if(roundCfg.flicker){
+      const t = objects[targetIdx];
+      t.el.style.background = roundBg;
+      t.el.style.boxShadow  = roundShadow;
+    }
     document.getElementById('tracking-cd-fill').style.width = '0%';
     setStatus('Де була ціль? Торкнись її!');
     objects.forEach((obj, i) => obj.el.addEventListener('click', () => onObjTap(i), {once:true}));
@@ -2031,12 +2045,12 @@ const TrackingGame = (function(){
       score++;
       haptic('success');
       objects[i].el.style.background = 'radial-gradient(circle,#34c759,#1a8a3a)';
-      objects[i].el.style.boxShadow = '0 0 22px rgba(52,199,89,1)';
+      objects[i].el.style.boxShadow   = '0 0 22px rgba(52,199,89,1)';
     } else {
       haptic('error');
-      objects[i].el.style.background = 'radial-gradient(circle,#ff3b30,#a00)';
-      objects[targetIdx].el.style.background = 'radial-gradient(circle,#34c759,#1a8a3a)';
-      objects[targetIdx].el.style.boxShadow = '0 0 22px rgba(52,199,89,1)';
+      objects[i].el.style.background         = 'radial-gradient(circle,#ff3b30,#a00)';
+      objects[targetIdx].el.style.background  = 'radial-gradient(circle,#34c759,#1a8a3a)';
+      objects[targetIdx].el.style.boxShadow   = '0 0 22px rgba(52,199,89,1)';
     }
     document.getElementById('tracking-score').textContent = score;
     setStatus(correct ? '✓ Вірно!' : '✗ Ціль виділено зеленим');
@@ -2051,6 +2065,7 @@ const TrackingGame = (function(){
   function setStatus(t){ document.getElementById('tracking-status').textContent = t; }
 
   function startRound(){
+    roundCfg = getRoundConfig(cfg, round);
     document.getElementById('tracking-round').textContent = `${round}/${ROUNDS}`;
     document.getElementById('tracking-cd-fill').style.width = '100%';
     createObjects();
