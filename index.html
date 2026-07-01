@@ -682,6 +682,7 @@ ul{list-style:none;}
     <div class="top-bar">
       <button class="back-btn" data-nav="main">‹</button>
       <div class="title">Таблиця результатів</div>
+      <button id="sb-refresh-btn" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px 8px;color:var(--text-dim)" title="Оновити">↻</button>
     </div>
     <div class="sb-today" id="sb-today-box"><p class="sb-offline">Завантаження...</p></div>
     <div class="sb-wins-row" id="sb-wins-row"></div>
@@ -2372,6 +2373,15 @@ function ensureDailyCache(){
   return dc;
 }
 
+function computeLocalMyScore(){
+  const dc=getDailyCache();
+  const today=getCurrentDayKey();
+  if(!dc||dc.dayKey!==today) return {score:0,games:0};
+  const score=Object.values(dc.played).reduce((s,v)=>s+(v.stars||0),0);
+  const games=Object.keys(dc.played).length;
+  return {score,games};
+}
+
 function isPlayedToday(gameId){
   const dc=getDailyCache();
   if(!dc||dc.dayKey!==getCurrentDayKey()) return false;
@@ -2390,6 +2400,8 @@ let fbTodayOff = null;
 
 /* ---- In-memory live competition snapshot ---- */
 const COMP = {myScore:0, myGames:0, oppScore:0, oppGames:0, oppName:''};
+window.__syncStatus = 'retrying';
+window.__firebaseFailedPermanently = false;
 
 /* ---- Toast ---- */
 let _toastTimer = null;
@@ -2402,6 +2414,16 @@ function showToast(msg){
   _toastTimer=setTimeout(()=>el.classList.remove('show'), 2400);
 }
 
+function updateSyncStatus(state){
+  window.__syncStatus=state;
+  const el=document.getElementById('sync-status-dot');
+  if(el){
+    const dot=state==='connected'?'🟢':state==='offline'?'🔴':'🟡';
+    const label=state==='connected'?'синхронізовано':state==='offline'?'офлайн':'підключення...';
+    el.textContent=dot+' '+label;
+  }
+}
+
 /* ---- Dynamic script loader ---- */
 function loadScript(src){
   return new Promise((res,rej)=>{
@@ -2411,11 +2433,15 @@ function loadScript(src){
   });
 }
 
-async function initFirebase(){
+async function initFirebase(attempt){
+  attempt=attempt||0;
+  const backoff=[2000,5000,10000];
   try{
-    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
-    await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js');
-    if(typeof firebase==='undefined') return;
+    if(typeof firebase==='undefined'){
+      await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js');
+    }
+    if(typeof firebase==='undefined') throw new Error('firebase unavailable after script load');
     const app=firebase.apps.length
       ? firebase.apps[0]
       : firebase.initializeApp({
@@ -2428,11 +2454,23 @@ async function initFirebase(){
           appId:'1:879006997942:web:d69c60d859fdb758f8f517',
         });
     fbDb=firebase.database(app);
+    window.__firebaseFailedPermanently=false;
     onFirebaseReady();
-  }catch(e){/* Firebase unavailable — full offline mode */}
+  }catch(e){
+    console.error('[BrainUp] Firebase init failed, attempt '+(attempt+1)+':', e);
+    if(attempt<2){
+      updateSyncStatus('retrying');
+      setTimeout(()=>initFirebase(attempt+1), backoff[attempt]||10000);
+    }else{
+      console.error('[BrainUp] Firebase init failed permanently after '+(attempt+1)+' attempts.');
+      window.__firebaseFailedPermanently=true;
+      updateSyncStatus('offline');
+    }
+  }
 }
 
 async function onFirebaseReady(){
+  updateSyncStatus('connected');
   await checkDailyWinner();
   const player=getPlayer();
   if(!player) return;
@@ -2559,10 +2597,15 @@ function renderCompBanner(){
   const today=getCurrentDayKey();
   const myLocal=(dc&&dc.dayKey===today)?Object.keys(dc.played).length:COMP.myGames;
 
+  const syncState=window.__syncStatus||'retrying';
+  const syncDot=syncState==='connected'?'🟢':syncState==='offline'?'🔴':'🟡';
+  const syncLabel=syncState==='connected'?'синхронізовано':syncState==='offline'?'офлайн':'підключення...';
+
   banner.innerHTML=
     `<span class="cb-me">${player.name}: ${COMP.myScore}★ (${myLocal}/13)</span>`+
     `<span class="cb-vs" style="color:${leadColor};font-size:12px;font-weight:700">${leadTxt}</span>`+
-    `<span class="cb-them">${oppName}: ${COMP.oppScore}★ (${COMP.oppGames}/13)</span>`;
+    `<span class="cb-them">${oppName}: ${COMP.oppScore}★ (${COMP.oppGames}/13)</span>`+
+    `<span id="sync-status-dot" style="font-size:10px;color:var(--text-dim);white-space:nowrap;">${syncDot} ${syncLabel}</span>`;
 }
 
 function renderScoreboard(){
@@ -2667,17 +2710,46 @@ if(_sbBtn) _sbBtn.addEventListener('click', ()=>{
   haptic(); renderScoreboard(); showScreen('scoreboard');
 });
 
+/* ---- Scoreboard manual refresh ---- */
+const _sbRefreshBtn = document.getElementById('sb-refresh-btn');
+if(_sbRefreshBtn) _sbRefreshBtn.addEventListener('click', async ()=>{
+  haptic();
+  const player=getPlayer();
+  if(!player) return;
+  const myId=player.id;
+  const oppId=getOpponentId(myId);
+  const dayKey=getCurrentDayKey();
+  try{
+    if(!fbDb) throw new Error('no db');
+    const snap=await fbDb.ref('days/'+dayKey).get();
+    const d=snap.val()||{};
+    const me=d[myId]||{};
+    const opp=d[oppId]||{};
+    COMP.myScore=me.totalScore||0;
+    COMP.myGames=Object.keys(me.games||{}).length;
+    COMP.oppScore=opp.totalScore||0;
+    COMP.oppGames=Object.keys(opp.games||{}).length;
+    COMP.oppName=PLAYERS[oppId].name;
+    renderScoreboard();
+    showToast('Оновлено');
+  }catch(e){
+    showToast('Не вдалося оновити — перевір з\'єднання');
+  }
+});
+
 /* ---- Initial render ---- */
 (function init(){
   const player = getPlayer();
   if(!player){
     showScreen('player');
   } else {
-    /* Refresh daily cache key on day change */
     ensureDailyCache();
+    const local=computeLocalMyScore();
+    COMP.myScore=local.score;
+    COMP.myGames=local.games;
+    renderCompBanner();
     renderMain();
   }
-  /* Load Firebase async — game works offline immediately */
   initFirebase();
 })();
 
