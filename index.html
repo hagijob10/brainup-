@@ -230,6 +230,7 @@ ul{list-style:none;}
 .diff-cell:active{transform:scale(.9);}
 .diff-cell.found{background:var(--success);}
 .diff-cell.wrong-tap{background:var(--danger);}
+.diff-grid{display:flex;flex-direction:column;gap:10px;}
 
 /* Reaction */
 .reaction-zone{
@@ -541,8 +542,12 @@ ul{list-style:none;}
     </div>
     <div class="game-stage">
       <p class="result-label">Знайди символ, який відрізняється</p>
-      <div class="diff-row" id="diff-row-top"></div>
-      <div class="diff-row" id="diff-row-bottom"></div>
+      <div class="diff-grid">
+        <div class="diff-row" id="diff-row-0"></div>
+        <div class="diff-row" id="diff-row-1"></div>
+        <div class="diff-row" id="diff-row-2"></div>
+        <div class="diff-row" id="diff-row-3"></div>
+      </div>
     </div>
   </section>
 
@@ -767,7 +772,7 @@ const GAMES = {
     name:'Знайди відмінності', icon:'🔍', color:'var(--c-diff)', hasLevels:false,
     higherBetter:true,
     formatScore:v=> v==null?'—': v+' знайдено',
-    stars:score=> score>=13?3:score>=7?2:1,
+    stars:score=> score>=7?3:score>=4?2:1,
   },
   reaction:{
     name:'Реакція', icon:'⚡', color:'var(--c-reaction)', hasLevels:false,
@@ -1531,33 +1536,34 @@ const DiffGame = (function(){
     [['😀','😃'],['🔵','🟣'],['🟢','🟡'],['❤️','🧡']],
     [['😀','😄'],['👍','👌'],['⬆️','⬇️'],['➕','➖']],
   ];
-  let timeLeft, score, timerHandle, diffIndex, locked;
+  let timeLeft, score, timerHandle, diffRow, diffCol, locked;
 
-  function renderRow(id, symbols, interactive){
+  function renderRow(id, symbols, rowIdx){
     const row = document.getElementById(id);
     row.innerHTML = '';
-    symbols.forEach((sym,i)=>{
+    symbols.forEach((sym, colIdx)=>{
       const cell = document.createElement('button');
       cell.className = 'diff-cell';
       cell.textContent = sym;
-      if(interactive) cell.addEventListener('click', ()=> onTap(i,cell));
+      cell.addEventListener('click', ()=> onTap(rowIdx, colIdx, cell));
       row.appendChild(cell);
     });
   }
   function newRound(){
-    const tier = TIERS[clamp(Math.floor(score/3), 0, TIERS.length-1)];
+    const tier = TIERS[clamp(Math.floor(score/2), 0, TIERS.length-1)];
     const pair = tier[randInt(0, tier.length-1)];
-    diffIndex = randInt(0,4);
+    diffRow = randInt(0, 3);
+    diffCol = randInt(0, 4);
     locked = false;
-    const top = Array(5).fill(pair[0]);
-    const bottom = Array(5).fill(pair[0]);
-    bottom[diffIndex] = pair[1];
-    renderRow('diff-row-top', top, false);
-    renderRow('diff-row-bottom', bottom, true);
+    for(let r = 0; r < 4; r++){
+      const syms = Array(5).fill(pair[0]);
+      if(r === diffRow) syms[diffCol] = pair[1];
+      renderRow('diff-row-'+r, syms, r);
+    }
   }
-  function onTap(i, cell){
+  function onTap(rowIdx, colIdx, cell){
     if(locked || timerHandle === null) return;
-    if(i === diffIndex){
+    if(rowIdx === diffRow && colIdx === diffCol){
       locked = true;
       score++; haptic('success');
       cell.classList.add('found');
@@ -2005,17 +2011,8 @@ const TrackingGame = (function(){
       obj.el.style.left = obj.x + 'px';
       obj.el.style.top  = obj.y + 'px';
     });
-    if(roundCfg.flicker){
-      const t = objects[targetIdx];
-      const flick = Math.floor(elapsed / roundCfg.flickerCycle) % 4 === 0;
-      if(flick){
-        t.el.style.background = 'radial-gradient(circle at 35% 35%, #ffeaa7, #fdcb6e)';
-        t.el.style.boxShadow  = '0 0 14px rgba(253,203,110,.9)';
-      } else {
-        t.el.style.background = roundBg;
-        t.el.style.boxShadow  = roundShadow;
-      }
-    }
+    /* Flicker block removed: the target must be pixel-identical to distractors
+       during movement so that tracking requires genuine visual attention. */
     const pct = clamp(1 - elapsed / MOVE_MS, 0, 1);
     document.getElementById('tracking-cd-fill').style.width = (pct * 100) + '%';
     if(elapsed >= MOVE_MS){ freeze(); return; }
@@ -2077,7 +2074,7 @@ const TrackingGame = (function(){
     t.el.style.boxShadow  = '0 0 24px rgba(249,202,36,1)';
     cdHandle = setTimeout(() => {
       if(stopFlag) return;
-      t.el.style.transform  = 'translate(-50%,-50%) scale(1)';
+      t.el.style.transform  = '';  /* clear inline; CSS class restores translate(-50%,-50%) */
       t.el.style.background = roundBg;
       t.el.style.boxShadow  = roundShadow;
       t.el.style.opacity    = '1';
