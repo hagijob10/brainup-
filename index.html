@@ -2517,12 +2517,15 @@ function subscribeToday(myId){
     const d=snap.val()||{};
     const me=d[myId]||{};
     const opp=d[oppId]||{};
-    COMP.myScore  = me.totalScore||0;
+    /* Own score: Math.max prevents an intermediate Firebase callback (games written
+       but totalScore not yet) from overwriting the locally-computed value with 0. */
+    COMP.myScore  = Math.max(COMP.myScore, me.totalScore||0);
     COMP.myGames  = Object.keys(me.games||{}).length;
     COMP.oppScore = opp.totalScore||0;
     COMP.oppGames = Object.keys(opp.games||{}).length;
     COMP.oppName  = PLAYERS[oppId].name;
     if(document.getElementById('screen-main').classList.contains('active')) renderCompBanner();
+    if(document.getElementById('screen-scoreboard').classList.contains('active')) renderScoreboard();
   };
   ref.on('value', handler);
   fbTodayOff=()=>ref.off('value', handler);
