@@ -971,7 +971,7 @@ function renderMain(){
     const played = isPlayedToday(id);
     const todayEntry = getTodayEntry(id);
     const card = document.createElement('button');
-    card.className = 'game-card' + (played ? ' played-today' : '');
+    card.className = 'game-card';
     const badgeHtml = played ? '<div class="played-badge">✓</div>' : '';
     const bottomLine = played && todayEntry
       ? `Сьогодні: ${cfg.formatScore(todayEntry.score)}`
@@ -989,10 +989,6 @@ function renderMain(){
 }
 
 function openGame(id){
-  if(getPlayer() && isPlayedToday(id)){
-    showToast('Вже зіграно сьогодні — наступна гра!');
-    return;
-  }
   currentGameId = id;
   const cfg = GAMES[id];
   if(cfg.hasLevels){ renderLevels(id); showScreen('levels'); }
